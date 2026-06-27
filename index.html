@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Professional Chemical Equation Balancer - Instantly balance any chemical equation with step-by-step solutions">
+<meta name="theme-color" content="#0a0e1a">
+<title>ChemBalance — Chemical Equation Balancer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- PWA Manifest inline -->
+<script>
+  const manifest = {
+    name: "ChemBalance",
+    short_name: "ChemBalance",
+    description: "Chemical Equation Balancer",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#0a0e1a",
+    theme_color: "#00d4ff",
+    icons: []
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = url;
+  document.head.appendChild(link);
+</script>
+
+<style>
+/* ═══════════════════════════════════════════
+   TOKEN SYSTEM
+═══════════════════════════════════════════ */
+:root {
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0, 212, 255, 0.15);
+  --cyan-glow: rgba(0, 212, 255, 0.4);
+  --violet: #7c3aed;
+  --violet-dim: rgba(124, 58, 237, 0.15);
+  --green: #10d9a0;
+  --red: #ff4d6d;
+  --amber: #fbbf24;
+
+  --bg: #0a0e1a;
+  --bg-2: #0f1629;
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.07);
+
+  --text-1: #f0f4ff;
+  --text-2: #8892b0;
+  --text-3: #4a5568;
+
+  --radius: 16px;
+  --radius-sm: 8px;
+  --radius-lg: 24px;
+
+  --font-ui: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  --bg: #f0f4ff;
+  --bg-2: #e4eaf8;
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.9);
+  --text-1: #0a0e1a;
+  --text-2: #4a5568;
+  --text-3: #8892b0;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATED BACKGROUND
+═══════════════════════════════════════════ */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.12;
+  animation: drift 20s ease-in-out infinite;
+}
+.bg-orb-1 { width: 600px; height: 600px; background: var(--cyan); top: -200px; right: -100px; animation-delay: 0s; }
+.bg-orb-2 { width: 500px; height: 500px; background: var(--violet); bottom: -150px; left: -100px; animation-delay: -7s; }
+.bg-orb-3 { width: 300px; height: 300px; background: var(--green); top: 50%; left: 50%; animation-delay: -14s; }
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+/* Floating element symbols */
+.bg-symbols {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.sym {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cyan);
+  opacity: 0.06;
+  animation: float-sym linear infinite;
+}
+@keyframes float-sym {
+  from { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.06; }
+  90% { opacity: 0.06; }
+  to { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.logo-text span {
+  color: var(--cyan);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all var(--transition);
+  backdrop-filter: blur(10px);
+}
+.icon-btn:hover {
+  background: var(--glass-hover);
+  color: var(--text-1);
+  border-color: var(--cyan-glow);
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+/* ═══════════════════════════════════════════
+   GLASS CARD
+═══════════════════════════════════════════ */
+.card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 28px;
+  transition: all var(--transition);
+}
+
+.card:hover {
+  border-color: rgba(0, 212, 255, 0.15);
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--cyan);
+  border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   HERO / INPUT SECTION
+═══════════════════════════════════════════ */
+.hero {
+  text-align: center;
+  padding: 20px 0 32px;
+}
+
+.hero-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+.hero-title .accent {
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Input Group */
+.input-group {
+  position: relative;
+  margin-top: 8px;
+}
+
+.equation-input {
+  width: 100%;
+  min-height: 100px;
+  padding: 20px 24px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  resize: none;
+  outline: none;
+  transition: all var(--transition);
+  line-height: 1.6;
+}
+
+.equation-input::placeholder {
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.equation-input:focus {
+  border-color: var(--cyan);
+  background: rgba(0, 212, 255, 0.03);
+  box-shadow: 0 0 0 4px var(--cyan-dim), inset 0 0 20px rgba(0,212,255,0.02);
+}
+
+.input-hint {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 8px;
+  text-align: right;
+}
+
+.examples-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.example-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 100px;
+  color: var(--cyan);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.example-chip:hover {
+  background: rgba(0,212,255,0.25);
+  transform: translateY(-1px);
+}
+
+/* Buttons row */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+  height: 52px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--cyan), #0099cc);
+  color: #0a0e1a;
+  box-shadow: 0 4px 24px rgba(0,212,255,0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,212,255,0.5);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-2);
+  backdrop-filter: blur(10px);
+}
+.btn-secondary:hover {
+  background: var(--glass-hover);
+  color: var(--text-1);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-2);
+  flex: 0;
+  padding: 0 20px;
+}
+.btn-ghost:hover {
+  background: rgba(255,75,109,0.1);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Ripple */
+.btn::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  width: 0; height: 0;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  transition: width 0.4s, height 0.4s, opacity 0.4s;
+  opacity: 0;
+}
+.btn:active::after { width: 200px; height: 200px; opacity: 0; }
+
+/* ═══════════════════════════════════════════
+   ERROR MESSAGE
+═══════════════════════════════════════════ */
+.error-msg {
+  display: none;
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: var(--red);
+  font-size: 14px;
+  margin-top: 12px;
+  align-items: center;
+  gap: 8px;
+}
+.error-msg.visible { display: flex; }
+
+/* ═══════════════════════════════════════════
+   LOADING
+═══════════════════════════════════════════ */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,14,26,0.8);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.loading-overlay.visible { display: flex; }
+
+.loader-box {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 60px;
+  text-align: center;
+  backdrop-filter: blur(20px);
+}
+
+.atom-spin {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  position: relative;
+}
+.atom-spin::before, .atom-spin::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+.atom-spin::before {
+  border-top-color: var(--cyan);
+  border-right-color: var(--cyan);
+  animation: spin 0.8s linear infinite;
+}
+.atom-spin::after {
+  border-bottom-color: var(--violet);
+  border-left-color: var(--violet);
+  animation: spin 0.8s linear infinite reverse;
+}
+.atom-spin .nucleus {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 10px; height: 10px;
+  background: var(--cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--cyan);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-text {
+  font-size: 14px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════
+   RESULTS SECTION
+═══════════════════════════════════════════ */
+#results-section {
+  display: none;
+  margin-top: 16px;
+}
+#results-section.visible { display: block; }
+
+/* Balanced equation display */
+.balanced-display {
+  font-family: var(--font-mono);
+  font-size: clamp(18px, 3.5vw, 28px);
+  font-weight: 700;
+  text-align: center;
+  padding: 28px 24px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: var(--radius);
+  letter-spacing: 1px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.coeff {
+  color: var(--cyan);
+}
+.arrow-sym {
+  color: var(--violet);
+  margin: 0 12px;
+}
+.plus-sym {
+  color: var(--text-2);
+  margin: 0 8px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.result-actions .btn {
+  flex: 1;
+  min-width: 120px;
+  height: 42px;
+  font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════
+   ATOM COUNTER TABLE
+═══════════════════════════════════════════ */
+.atom-tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+@media (max-width: 580px) {
+  .atom-tables { grid-template-columns: 1fr; }
+}
+
+.atom-table-wrap h4 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.atom-table-wrap h4 .status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.unbalanced { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.status-dot.balanced { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+.atom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.atom-table th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.atom-table td {
+  padding: 8px 8px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.atom-table td:first-child {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--cyan);
+}
+.atom-table td:last-child,
+.atom-table td:nth-child(2) {
+  text-align: center;
+  font-family: var(--font-mono);
+}
+.atom-table .mismatch td { color: var(--red); }
+.atom-table .match td:not(:first-child) { color: var(--green); }
+
+/* Element tile style for element col */
+.el-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+/* ═══════════════════════════════════════════
+   STEPS
+═══════════════════════════════════════════ */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  animation: step-in 0.3s ease both;
+}
+
+@keyframes step-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0a0e1a;
+}
+
+.step-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.step-content strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 2px;
+}
+
+.step-content p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.step-content code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--cyan-dim);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--cyan);
+}
+
+/* ═══════════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════════ */
+#history-section {
+  display: none;
+  margin-top: 16px;
+}
+#history-section.visible { display: block; }
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.history-item:hover {
+  background: var(--glass-hover);
+  border-color: rgba(0,212,255,0.2);
+  transform: translateX(4px);
+}
+
+.history-eq {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-balanced {
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(16,217,160,0.1);
+  padding: 2px 8px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.history-del {
+  width: 24px; height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.history-del:hover { color: var(--red); background: rgba(255,77,109,0.1); }
+
+/* ═══════════════════════════════════════════
+   PERIODIC TABLE POPUP
+═══════════════════════════════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,14,26,0.85);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+.modal-overlay.visible { display: flex; }
+
+.modal {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  width: 860px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--red); color: white; border-color: var(--red); }
+
+.pt-grid {
+  display: grid;
+  grid-template-columns: repeat(18, 1fr);
+  gap: 2px;
+  margin-top: 16px;
+  min-width: 600px;
+}
+
+.pt-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+  font-size: clamp(7px, 1vw, 11px);
+}
+.pt-cell:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.pt-cell .pt-num { font-size: 0.7em; opacity: 0.7; }
+.pt-cell .pt-sym { font-weight: 700; font-size: 1.1em; }
+.pt-cell .pt-name { font-size: 0.6em; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.pt-cell.empty { background: transparent; border: none; cursor: default; pointer-events: none; }
+
+/* Category colors */
+.pt-cell.alkali { background: rgba(255,100,100,0.15); border-color: rgba(255,100,100,0.2); color: #ff6464; }
+.pt-cell.alkaline { background: rgba(255,165,0,0.15); border-color: rgba(255,165,0,0.2); color: #ffa500; }
+.pt-cell.transition { background: rgba(255,212,0,0.12); border-color: rgba(255,212,0,0.2); color: #ffd400; }
+.pt-cell.post-transition { background: rgba(100,200,100,0.12); border-color: rgba(100,200,100,0.2); color: #64c864; }
+.pt-cell.metalloid { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.2); color: var(--cyan); }
+.pt-cell.nonmetal { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.2); color: #a78bfa; }
+.pt-cell.halogen { background: rgba(16,217,160,0.12); border-color: rgba(16,217,160,0.2); color: var(--green); }
+.pt-cell.noble { background: rgba(255,100,180,0.12); border-color: rgba(255,100,180,0.2); color: #ff64b4; }
+.pt-cell.lanthanide { background: rgba(150,150,255,0.12); border-color: rgba(150,150,255,0.2); color: #9696ff; }
+.pt-cell.actinide { background: rgba(200,100,255,0.12); border-color: rgba(200,100,255,0.2); color: #c864ff; }
+
+/* Molar mass card */
+.molar-result {
+  display: none;
+  margin-top: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--cyan-dim), var(--violet-dim));
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.molar-result.visible { display: block; }
+
+/* ═══════════════════════════════════════════
+   KEYBOARD HINTS
+═══════════════════════════════════════════ */
+.kbd-hints {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
+
+.kbd-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--glass-border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+}
+
+/* ═══════════════════════════════════════════
+   FAVORITES
+═══════════════════════════════════════════ */
+.fav-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  transition: transform 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+.fav-btn:hover { transform: scale(1.3); }
+.fav-btn.active { filter: drop-shadow(0 0 6px gold); }
+
+/* ═══════════════════════════════════════════
+   MOLAR MASS SECTION
+═══════════════════════════════════════════ */
+.molar-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.molar-input {
+  flex: 1;
+  height: 44px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  outline: none;
+  transition: all var(--transition);
+}
+.molar-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim);
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.3); }
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--green);
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--text-1);
+  backdrop-filter: blur(10px);
+  animation: toast-in 0.3s ease;
+  max-width: 280px;
+}
+.toast.error { border-left-color: var(--red); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .header { padding-bottom: 20px; }
+  .card { padding: 20px 16px; }
+  .btn-row { flex-wrap: wrap; }
+  .btn-ghost { flex: 1; }
+  .result-actions .btn { flex: 1 1 calc(50% - 4px); }
+  .pt-grid { overflow-x: auto; }
+  .kbd-hints { display: none; }
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .equation-input {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.1);
+}
+[data-theme="light"] .equation-input:focus {
+  background: white;
+}
+[data-theme="light"] .bg-orb { opacity: 0.06; }
+[data-theme="light"] .sym { opacity: 0.04; }
+[data-theme="light"] .modal { background: #fff; }
+[data-theme="light"] .history-item { background: rgba(0,0,0,0.02); }
+[data-theme="light"] .balanced-display { background: linear-gradient(135deg, rgba(0,150,200,0.06), rgba(100,50,200,0.06)); }
+
+/* Verified badge */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--green);
+  background: rgba(16,217,160,0.1);
+  border: 1px solid rgba(16,217,160,0.2);
+  border-radius: 100px;
+  padding: 4px 12px;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+<div class="bg-symbols" id="bgSymbols"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-box">
+    <div class="atom-spin"><div class="nucleus"></div></div>
+    <div class="loader-text" id="loaderText">Solving matrix...</div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Main App -->
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">⚗️</div>
+      <div class="logo-text">Chem<span>Balance</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="periodicBtn" title="Periodic Table">🔬</button>
+      <button class="icon-btn" id="molarBtn" title="Molar Mass Calculator">⚖️</button>
+      <button class="icon-btn" id="historyBtn" title="History">📋</button>
+      <button class="icon-btn" id="themeBtn" title="Toggle Theme">🌙</button>
+    </div>
+  </header>
+
+  <!-- Hero + Input -->
+  <div class="hero">
+    <h1 class="hero-title">Balance Chemical<br><span class="accent">Equations Instantly</span></h1>
+    <p class="hero-sub">Enter any chemical equation and get coefficients, atom counts, and step-by-step solutions.</p>
+  </div>
+
+  <div class="card">
+    <div class="input-group">
+      <textarea
+        class="equation-input"
+        id="equationInput"
+        placeholder="Enter equation, e.g.:&#10;H2 + O2 -> H2O&#10;Fe + O2 -> Fe2O3&#10;C3H8 + O2 -> CO2 + H2O"
+        rows="3"
+        spellcheck="false"
+        autocomplete="off"
+      ></textarea>
+      <div class="input-hint">Use <strong>-&gt;</strong> or <strong>=</strong> as arrow &nbsp;·&nbsp; Subscripts as numbers &nbsp;·&nbsp; Parentheses supported</div>
+    </div>
+
+    <div class="examples-row">
+      <span style="font-size:12px;color:var(--text-3);align-self:center;">Try:</span>
+      <button class="example-chip" data-eq="H2 + O2 -> H2O">H₂ + O₂ → H₂O</button>
+      <button class="example-chip" data-eq="Fe + O2 -> Fe2O3">Fe + O₂ → Fe₂O₃</button>
+      <button class="example-chip" data-eq="C3H8 + O2 -> CO2 + H2O">C₃H₈ combustion</button>
+      <button class="example-chip" data-eq="Al + HCl -> AlCl3 + H2">Al + HCl</button>
+      <button class="example-chip" data-eq="KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2">KMnO₄ redox</button>
+      <button class="example-chip" data-eq="Ca(OH)2 + H3PO4 -> Ca3(PO4)2 + H2O">Acid-base</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg">
+      <span>⚠️</span>
+      <span id="errorText"></span>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="balanceBtn">
+        ⚡ Balance Equation
+      </button>
+      <button class="btn btn-ghost" id="clearBtn">✕ Clear</button>
+    </div>
+
+    <div class="kbd-hints">
+      <span class="kbd-hint"><kbd>Enter</kbd> Balance</span>
+      <span class="kbd-hint"><kbd>Ctrl</kbd>+<kbd>C</kbd> Copy result</span>
+      <span class="kbd-hint"><kbd>Esc</kbd> Clear</span>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <!-- Balanced Equation -->
+    <div class="card">
+      <div class="card-title">Balanced Equation</div>
+      <div class="balanced-display" id="balancedDisplay"></div>
+      <div style="text-align:center">
+        <div class="verified-badge" id="verifiedBadge">✓ Verified — Atoms balance on both sides</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-secondary" id="copyBtn">📋 Copy</button>
+        <button class="btn btn-secondary" id="exportPngBtn">🖼 Save PNG</button>
+        <button class="btn btn-secondary" id="exportPdfBtn">📄 Save PDF</button>
+        <button class="btn btn-secondary" id="shareBtn">🔗 Share</button>
+        <button class="fav-btn" id="favBtn" title="Add to favorites">⭐</button>
+      </div>
+    </div>
+
+    <!-- Atom Counter -->
+    <div class="card">
+      <div class="card-title">Atom Counter</div>
+      <div class="atom-tables">
+        <div class="atom-table-wrap">
+          <h4><span class="status-dot unbalanced"></span> Before Balancing</h4>
+          <table class="atom-table" id="beforeTable">
+            <thead><tr><th>Element</th><th>Left</th><th>Right</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="atom-table-wrap">
+          <h4><span class="status-dot balanced"></span> After Balancing</h4>
+          <table class="atom-table" id="afterTable">
+            <thead><tr><th>Element</th><th>Left</th><th>Right</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="card">
+      <div class="card-title">Step-by-Step Solution</div>
+      <div class="steps-list" id="stepsList"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="card" id="history-section">
+    <div class="card-title" style="justify-content:space-between">
+      <span>Recent Equations</span>
+      <button class="btn btn-ghost" id="clearHistoryBtn" style="height:30px;font-size:12px;padding:0 12px;flex:0">Clear All</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Periodic Table Modal -->
+<div class="modal-overlay" id="periodicModal">
+  <div class="modal">
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">Periodic Table</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:8px">Click an element to insert it into your equation</div>
+    <button class="modal-close" id="closePeriodicBtn">✕</button>
+    <div class="pt-grid" id="periodicGrid"></div>
+  </div>
+</div>
+
+<!-- Molar Mass Modal -->
+<div class="modal-overlay" id="molarModal">
+  <div class="modal" style="max-width:480px;width:100%">
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">Molar Mass Calculator</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">Enter a chemical formula to calculate molar mass</div>
+    <button class="modal-close" id="closeMolarBtn">✕</button>
+    <div class="molar-input-row">
+      <input type="text" class="molar-input" id="molarInput" placeholder="e.g. H2O, CaCO3, C6H12O6" spellcheck="false">
+      <button class="btn btn-primary" id="calcMolarBtn" style="flex:0;padding:0 20px;height:44px">Calculate</button>
+    </div>
+    <div class="molar-result" id="molarResult"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CHEMISTRY ENGINE — Parser, Validator, Matrix Solver
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * ATOMIC MASSES (g/mol) — for molar mass calculator
+ */
+const ATOMIC_MASSES = {
+  H:1.008,He:4.003,Li:6.941,Be:9.012,B:10.811,C:12.011,N:14.007,O:15.999,F:18.998,Ne:20.18,
+  Na:22.99,Mg:24.305,Al:26.982,Si:28.086,P:30.974,S:32.065,Cl:35.453,Ar:39.948,K:39.098,
+  Ca:40.078,Sc:44.956,Ti:47.867,V:50.942,Cr:51.996,Mn:54.938,Fe:55.845,Co:58.933,Ni:58.693,
+  Cu:63.546,Zn:65.38,Ga:69.723,Ge:72.64,As:74.922,Se:78.96,Br:79.904,Kr:83.798,Rb:85.468,
+  Sr:87.62,Y:88.906,Zr:91.224,Nb:92.906,Mo:95.96,Tc:98,Ru:101.07,Rh:102.906,Pd:106.42,
+  Ag:107.868,Cd:112.411,In:114.818,Sn:118.71,Sb:121.76,Te:127.6,I:126.904,Xe:131.293,
+  Cs:132.905,Ba:137.327,La:138.905,Ce:140.116,Pr:140.908,Nd:144.242,Pm:145,Sm:150.36,
+  Eu:151.964,Gd:157.25,Tb:158.925,Dy:162.5,Ho:164.93,Er:167.259,Tm:168.934,Yb:173.054,
+  Lu:174.967,Hf:178.49,Ta:180.948,W:183.84,Re:186.207,Os:190.23,Ir:192.217,Pt:195.084,
+  Au:196.967,Hg:200.59,Tl:204.383,Pb:207.2,Bi:208.98,Po:209,At:210,Rn:222,Fr:223,Ra:226,
+  Ac:227,Th:232.038,Pa:231.036,U:238.029,Np:237,Pu:244,Am:243,Cm:247,Bk:247,Cf:251,
+  Es:252,Fm:257,Md:258,No:259,Lr:262,Rf:265,Db:268,Sg:271,Bh:270,Hs:277,Mt:276,Ds:281,
+  Rg:280,Cn:285,Nh:284,Fl:289,Mc:288,Lv:293,Ts:294,Og:294
+};
+
+const ELEMENT_NAMES = {
+  H:'Hydrogen',He:'Helium',Li:'Lithium',Be:'Beryllium',B:'Boron',C:'Carbon',N:'Nitrogen',
+  O:'Oxygen',F:'Fluorine',Ne:'Neon',Na:'Sodium',Mg:'Magnesium',Al:'Aluminum',Si:'Silicon',
+  P:'Phosphorus',S:'Sulfur',Cl:'Chlorine',Ar:'Argon',K:'Potassium',Ca:'Calcium',
+  Sc:'Scandium',Ti:'Titanium',V:'Vanadium',Cr:'Chromium',Mn:'Manganese',Fe:'Iron',
+  Co:'Cobalt',Ni:'Nickel',Cu:'Copper',Zn:'Zinc',Ga:'Gallium',Ge:'Germanium',As:'Arsenic',
+  Se:'Selenium',Br:'Bromine',Kr:'Krypton',Rb:'Rubidium',Sr:'Strontium',Y:'Yttrium',
+  Zr:'Zirconium',Nb:'Niobium',Mo:'Molybdenum',Tc:'Technetium',Ru:'Ruthenium',Rh:'Rhodium',
+  Pd:'Palladium',Ag:'Silver',Cd:'Cadmium',In:'Indium',Sn:'Tin',Sb:'Antimony',Te:'Tellurium',
+  I:'Iodine',Xe:'Xenon',Cs:'Cesium',Ba:'Barium',La:'Lanthanum',Ce:'Cerium',Pr:'Praseodymium',
+  Nd:'Neodymium',Au:'Gold',Hg:'Mercury',Pb:'Lead',Bi:'Bismuth',U:'Uranium',Fe:'Iron',
+  W:'Tungsten',Pt:'Platinum',Ir:'Iridium',Os:'Osmium',Re:'Rhenium',Ta:'Tantalum',Hf:'Hafnium'
+};
+
+/**
+ * Parse a chemical formula into element counts.
+ * Supports: H2O, Ca(OH)2, Fe2(SO4)3, nested parentheses
+ */
+function parseFormula(formula) {
+  formula = formula.trim();
+  if (!formula) return {};
+
+  let i = 0;
+  function parse() {
+    const counts = {};
+    while (i < formula.length) {
+      const ch = formula[i];
+      if (ch === '(') {
+        i++; // skip '('
+        const inner = parse();
+        if (formula[i] !== ')') throw new Error(`Missing closing parenthesis in: ${formula}`);
+        i++; // skip ')'
+        let numStr = '';
+        while (i < formula.length && /\d/.test(formula[i])) { numStr += formula[i++]; }
+        const mult = numStr ? parseInt(numStr) : 1;
+        for (const [el, cnt] of Object.entries(inner)) {
+          counts[el] = (counts[el] || 0) + cnt * mult;
+        }
+      } else if (ch === ')') {
+        break;
+      } else if (/[A-Z]/.test(ch)) {
+        let el = ch; i++;
+        while (i < formula.length && /[a-z]/.test(formula[i])) { el += formula[i++]; }
+        let numStr = '';
+        while (i < formula.length && /\d/.test(formula[i])) { numStr += formula[i++]; }
+        const cnt = numStr ? parseInt(numStr) : 1;
+        if (!ATOMIC_MASSES[el] && el !== 'D' && el !== 'T') {
+          throw new Error(`Unknown element: "${el}"`);
+        }
+        counts[el] = (counts[el] || 0) + cnt;
+      } else if (/\d/.test(ch)) {
+        throw new Error(`Unexpected digit in formula: ${formula}`);
+      } else if (ch === '·' || ch === '.' || ch === '*') {
+        // hydrate dot — treat remainder as new formula fragment
+        i++;
+        let numStr = '';
+        while (i < formula.length && /\d/.test(formula[i])) { numStr += formula[i++]; }
+        const hydrateMult = numStr ? parseInt(numStr) : 1;
+        const remainder = formula.slice(i);
+        if (remainder) {
+          const rhCounts = parseFormula(remainder);
+          for (const [el, cnt] of Object.entries(rhCounts)) {
+            counts[el] = (counts[el] || 0) + cnt * hydrateMult;
+          }
+          i = formula.length;
+        }
+      } else {
+        throw new Error(`Invalid character "${ch}" in formula: ${formula}`);
+      }
+    }
+    return counts;
+  }
+
+  return parse();
+}
+
+/**
+ * Split equation into reactants & products.
+ * Returns { reactants: string[], products: string[], arrow: string }
+ */
+function parseEquation(eq) {
+  eq = eq.trim();
+  // Normalize arrow
+  const arrowMatch = eq.match(/(-+>|→|=>|=)/);
+  if (!arrowMatch) throw new Error('Missing arrow. Use -> or = to separate reactants and products.');
+  const arrow = arrowMatch[0];
+  const parts = eq.split(arrow);
+  if (parts.length < 2) throw new Error('Could not split equation at arrow.');
+  const reactants = parts[0].trim().split('+').map(s => s.trim()).filter(Boolean);
+  const products = parts.slice(1).join(arrow).trim().split('+').map(s => s.trim()).filter(Boolean);
+  if (!reactants.length) throw new Error('No reactants found. Add compounds before the arrow.');
+  if (!products.length) throw new Error('No products found. Add compounds after the arrow.');
+  return { reactants, products, arrow };
+}
+
+/**
+ * Count atoms in an array of formulas (with optional coefficients)
+ */
+function countAtoms(formulas, coefficients = null) {
+  const total = {};
+  formulas.forEach((f, idx) => {
+    const coeff = coefficients ? coefficients[idx] : 1;
+    const counts = parseFormula(f);
+    for (const [el, cnt] of Object.entries(counts)) {
+      total[el] = (total[el] || 0) + cnt * coeff;
+    }
+  });
+  return total;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MATRIX SOLVER — Gaussian elimination with fractions
+// ═══════════════════════════════════════════════════════════════
+
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+function lcm(a, b) { return a / gcd(a, b) * b; }
+
+function gaussianEliminate(matrix, numVars) {
+  const rows = matrix.length;
+  let pivot = 0;
+  const rowOrder = Array.from({length: rows}, (_, i) => i);
+
+  for (let col = 0; col < numVars && pivot < rows; col++) {
+    // Find non-zero row
+    let found = -1;
+    for (let r = pivot; r < rows; r++) {
+      if (matrix[rowOrder[r]][col] !== 0) { found = r; break; }
+    }
+    if (found === -1) continue;
+    [rowOrder[pivot], rowOrder[found]] = [rowOrder[found], rowOrder[pivot]];
+
+    // Eliminate column
+    for (let r = 0; r < rows; r++) {
+      if (r === pivot || matrix[rowOrder[r]][col] === 0) continue;
+      const factor = matrix[rowOrder[r]][col];
+      const pivotVal = matrix[rowOrder[pivot]][col];
+      for (let c = 0; c <= numVars; c++) {
+        matrix[rowOrder[r]][c] = matrix[rowOrder[r]][c] * pivotVal - factor * matrix[rowOrder[pivot]][c];
+      }
+    }
+    pivot++;
+  }
+
+  // Back-substitute: extract solution
+  const solution = new Array(numVars).fill(null);
+  for (let r = 0; r < rows; r++) {
+    const row = matrix[rowOrder[r]];
+    let pivotCol = -1;
+    for (let c = 0; c < numVars; c++) {
+      if (row[c] !== 0) { pivotCol = c; break; }
+    }
+    if (pivotCol === -1) continue;
+    // Check if consistent
+    if (pivotCol === -1 && row[numVars] !== 0) throw new Error('No solution');
+    solution[pivotCol] = { num: row[numVars], den: row[pivotCol] };
+  }
+
+  return solution;
+}
+
+/**
+ * Main balancing algorithm.
+ * Returns array of integer coefficients [r1, r2, ..., p1, p2, ...]
+ */
+function balanceEquation(reactants, products) {
+  const allFormulas = [...reactants, ...products];
+  const n = allFormulas.length;
+
+  // Collect all elements
+  const allElements = new Set();
+  const formulaCounts = allFormulas.map(f => {
+    const counts = parseFormula(f);
+    Object.keys(counts).forEach(e => allElements.add(e));
+    return counts;
+  });
+
+  const elements = [...allElements].sort();
+  const numEqs = elements.length;
+
+  // Build matrix: each row = one element, each col = one compound
+  // reactants positive, products negative
+  const matrix = elements.map(el => {
+    const row = [];
+    for (let j = 0; j < n; j++) {
+      const sign = j < reactants.length ? 1 : -1;
+      row.push(sign * (formulaCounts[j][el] || 0));
+    }
+    row.push(0); // RHS
+    return row;
+  });
+
+  // Try setting last variable = 1 and solving for others
+  // Augment: move last col to RHS
+  const augMatrix = matrix.map(row => {
+    const newRow = row.slice(0, n - 1);
+    newRow.push(-row[n - 1]); // move last var to RHS
+    return newRow;
+  });
+
+  // Add row for last var
+  const freeRow = new Array(n).fill(0);
+  freeRow[n - 2] = 0; // not needed but kept for shape
+  // Set last compound coefficient = 1 via the augmented system solve
+
+  let solution;
+  try {
+    solution = gaussianEliminate(augMatrix.map(r => [...r]), n - 1);
+  } catch (e) {
+    throw new Error('Cannot solve this equation. Check your formula.');
+  }
+
+  // Build rational coefficients: last one = 1
+  const rationals = []; // {num, den}
+  for (let i = 0; i < n - 1; i++) {
+    if (solution[i] === null) {
+      // Free variable — set to 1
+      rationals.push({ num: 1, den: 1 });
+    } else {
+      rationals.push(solution[i]);
+    }
+  }
+  rationals.push({ num: 1, den: 1 }); // last compound
+
+  // Find LCM of denominators
+  const denoms = rationals.map(r => Math.abs(r.den));
+  const commonDen = denoms.reduce(lcm, 1);
+
+  // Convert to integers
+  let coeffs = rationals.map(r => Math.round(r.num * commonDen / r.den));
+
+  // All must be positive
+  if (coeffs.some(c => c <= 0)) {
+    // Flip signs
+    const allNeg = coeffs.every(c => c < 0);
+    if (allNeg) coeffs = coeffs.map(c => -c);
+    else throw new Error('Could not balance: got non-positive coefficients. Check the reaction.');
+  }
+
+  // Reduce by GCD
+  const g = coeffs.reduce(gcd, coeffs[0]);
+  coeffs = coeffs.map(c => Math.round(c / g));
+
+  // Verify
+  for (const el of elements) {
+    let leftSum = 0, rightSum = 0;
+    for (let j = 0; j < reactants.length; j++) {
+      leftSum += (formulaCounts[j][el] || 0) * coeffs[j];
+    }
+    for (let j = 0; j < products.length; j++) {
+      rightSum += (formulaCounts[reactants.length + j][el] || 0) * coeffs[reactants.length + j];
+    }
+    if (leftSum !== rightSum) {
+      // Try brute force for small cases
+      return bruteForce(reactants, products, formulaCounts, elements);
+    }
+  }
+
+  return coeffs;
+}
+
+/**
+ * Brute force balancer for tricky cases (small coefficients)
+ */
+function bruteForce(reactants, products, formulaCounts, elements) {
+  const n = reactants.length + products.length;
+  const MAX = 20;
+
+  function check(coeffs) {
+    for (const el of elements) {
+      let L = 0, R = 0;
+      for (let j = 0; j < reactants.length; j++) L += (formulaCounts[j][el] || 0) * coeffs[j];
+      for (let j = 0; j < products.length; j++) R += (formulaCounts[reactants.length + j][el] || 0) * coeffs[reactants.length + j];
+      if (L !== R) return false;
+    }
+    return true;
+  }
+
+  function recurse(idx, current) {
+    if (idx === n) return check(current) ? [...current] : null;
+    for (let v = 1; v <= MAX; v++) {
+      current[idx] = v;
+      const result = recurse(idx + 1, current);
+      if (result) return result;
+    }
+    return null;
+  }
+
+  const result = recurse(0, new Array(n).fill(1));
+  if (!result) throw new Error('Cannot balance this equation with coefficients up to 20. Try checking the reaction.');
+
+  // Reduce
+  const g = result.reduce(gcd, result[0]);
+  return result.map(c => Math.round(c / g));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP GENERATOR — Produce human-readable steps
+// ═══════════════════════════════════════════════════════════════
+
+function generateSteps(reactants, products, coeffs) {
+  const steps = [];
+  const allFormulas = [...reactants, ...products];
+  const n = reactants.length;
+
+  const beforeL = countAtoms(reactants);
+  const beforeR = countAtoms(products);
+  const afterL = countAtoms(reactants, coeffs.slice(0, n));
+  const afterR = countAtoms(products, coeffs.slice(n));
+  const allEls = [...new Set([...Object.keys(afterL), ...Object.keys(afterR)])].sort();
+
+  steps.push({
+    title: 'Write the unbalanced equation',
+    detail: `Identify reactants and products: <code>${reactants.join(' + ')}</code> → <code>${products.join(' + ')}</code>`,
+    sub: `Found ${allEls.length} element${allEls.length !== 1 ? 's' : ''}: ${allEls.join(', ')}`
+  });
+
+  steps.push({
+    title: 'Set up the atom balance matrix',
+    detail: `Created a ${allEls.length} × ${allFormulas.length} matrix with one equation per element. Each column represents a compound coefficient.`,
+    sub: null
+  });
+
+  steps.push({
+    title: 'Apply Gaussian elimination',
+    detail: `Solved the system of linear equations to find the smallest integer solution using row reduction and LCM normalization.`,
+    sub: null
+  });
+
+  // Per-element balancing steps
+  allEls.forEach((el, idx) => {
+    const lBefore = beforeL[el] || 0;
+    const rBefore = beforeR[el] || 0;
+    const lAfter = afterL[el] || 0;
+    const rAfter = afterR[el] || 0;
+    steps.push({
+      title: `Balance ${ELEMENT_NAMES[el] || el} (${el}) atoms`,
+      detail: `Before: <code>${lBefore}</code> left, <code>${rBefore}</code> right → After: <code>${lAfter}</code> left, <code>${rAfter}</code> right`,
+      sub: lAfter === rAfter ? `✓ ${el} is balanced` : `✗ ${el} still differs`
+    });
+  });
+
+  // Final coefficients step
+  const rCoeffs = coeffs.slice(0, n).map((c, i) => `${c > 1 ? c : ''}${reactants[i]}`).join(' + ');
+  const pCoeffs = coeffs.slice(n).map((c, i) => `${c > 1 ? c : ''}${products[i]}`).join(' + ');
+  steps.push({
+    title: 'Final balanced equation',
+    detail: `Coefficients: ${coeffs.map((c, i) => `<code>${allFormulas[i]}×${c}</code>`).join(', ')}`,
+    sub: `${rCoeffs} → ${pCoeffs}`
+  });
+
+  steps.push({
+    title: 'Verify atom conservation',
+    detail: `Confirmed all elements balance: ${allEls.map(el => `<code>${el}: ${afterL[el] || 0}=${afterR[el] || 0}</code>`).join(', ')}`,
+    sub: '✓ Law of Conservation of Mass satisfied'
+  });
+
+  return steps;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MOLAR MASS CALCULATOR
+// ═══════════════════════════════════════════════════════════════
+
+function calcMolarMass(formula) {
+  const counts = parseFormula(formula);
+  let total = 0;
+  const breakdown = [];
+  for (const [el, cnt] of Object.entries(counts)) {
+    const mass = ATOMIC_MASSES[el];
+    if (!mass) throw new Error(`Unknown element: ${el}`);
+    total += mass * cnt;
+    breakdown.push(`${el}${cnt > 1 ? `×${cnt}` : ''}: ${(mass * cnt).toFixed(3)}`);
+  }
+  return { total, breakdown };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+
+const $ = id => document.getElementById(id);
+
+let lastBalanced = null; // {input, balanced, coeffs, reactants, products}
+let currentFavs = JSON.parse(localStorage.getItem('chemFavs') || '[]');
+let history = JSON.parse(localStorage.getItem('chemHistory') || '[]');
+let theme = localStorage.getItem('chemTheme') || 'dark';
+
+// Apply theme
+document.documentElement.setAttribute('data-theme', theme);
+$('themeBtn').textContent = theme === 'dark' ? '🌙' : '☀️';
+
+// Background floating symbols
+(function initBgSymbols() {
+  const syms = ['H₂', 'O₂', 'CO₂', 'NaCl', 'H₂O', 'Fe', 'Ca', 'N₂', 'CH₄', 'Mg'];
+  const container = $('bgSymbols');
+  for (let i = 0; i < 15; i++) {
+    const el = document.createElement('div');
+    el.className = 'sym';
+    el.textContent = syms[Math.floor(Math.random() * syms.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (15 + Math.random() * 20) + 's';
+    el.style.animationDelay = -(Math.random() * 30) + 's';
+    container.appendChild(el);
+  }
+})();
+
+// ─── TOAST ───────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast${type === 'error' ? ' error' : ''}`;
+  t.textContent = msg;
+  $('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ─── ERROR ───────────────────────────────────────
+function showError(msg) {
+  $('errorText').textContent = msg;
+  $('errorMsg').classList.add('visible');
+}
+function clearError() {
+  $('errorMsg').classList.remove('visible');
+}
+
+// ─── FORMAT BALANCED EQ ──────────────────────────
+function formatEquation(reactants, products, coeffs) {
+  const n = reactants.length;
+  const fmtSide = (formulas, startIdx) =>
+    formulas.map((f, i) => {
+      const c = coeffs[startIdx + i];
+      return `<span class="coeff">${c > 1 ? c : ''}</span>${f}`;
+    }).join(`<span class="plus-sym"> + </span>`);
+
+  return fmtSide(reactants, 0) + `<span class="arrow-sym"> → </span>` + fmtSide(products, n);
+}
+
+// ─── PLAIN TEXT EQ ───────────────────────────────
+function plainEquation(reactants, products, coeffs) {
+  const n = reactants.length;
+  const fmtSide = (formulas, startIdx) =>
+    formulas.map((f, i) => {
+      const c = coeffs[startIdx + i];
+      return (c > 1 ? c : '') + f;
+    }).join(' + ');
+  return fmtSide(reactants, 0) + ' -> ' + fmtSide(products, n);
+}
+
+// ─── ATOM TABLE ──────────────────────────────────
+function buildAtomTable(tableId, reactants, products, rCoeffs, pCoeffs) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  tbody.innerHTML = '';
+  const allEls = new Set([
+    ...Object.keys(countAtoms(reactants, rCoeffs)),
+    ...Object.keys(countAtoms(products, pCoeffs))
+  ]);
+  const leftCounts = countAtoms(reactants, rCoeffs);
+  const rightCounts = countAtoms(products, pCoeffs);
+
+  [...allEls].sort().forEach(el => {
+    const l = leftCounts[el] || 0;
+    const r = rightCounts[el] || 0;
+    const tr = document.createElement('tr');
+    tr.className = l === r ? 'match' : 'mismatch';
+    tr.innerHTML = `
+      <td><span class="el-tile">${el}</span></td>
+      <td>${l}</td>
+      <td>${r}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── STEPS ───────────────────────────────────────
+function renderSteps(steps) {
+  const list = $('stepsList');
+  list.innerHTML = '';
+  steps.forEach((step, i) => {
+    const el = document.createElement('div');
+    el.className = 'step-item';
+    el.style.animationDelay = `${i * 0.06}s`;
+    el.innerHTML = `
+      <div class="step-num">${i + 1}</div>
+      <div class="step-content">
+        <strong>${step.title}</strong>
+        <p>${step.detail}</p>
+        ${step.sub ? `<p style="margin-top:4px;font-size:12px;color:var(--text-3)">${step.sub}</p>` : ''}
+      </div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ─── HISTORY ─────────────────────────────────────
+function saveHistory(inputEq, balancedEq) {
+  history = history.filter(h => h.input !== inputEq);
+  history.unshift({ input: inputEq, balanced: balancedEq, ts: Date.now() });
+  if (history.length > 20) history.pop();
+  localStorage.setItem('chemHistory', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = $('historyList');
+  if (!history.length) {
+    $('history-section').classList.remove('visible');
+    return;
+  }
+  $('history-section').classList.add('visible');
+  list.innerHTML = '';
+  history.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className = 'history-item';
+    el.innerHTML = `
+      <span class="history-eq" title="${item.input}">${item.balanced}</span>
+      <span class="history-balanced">✓ Balanced</span>
+      <button class="history-del" data-idx="${idx}" title="Remove">✕</button>
+    `;
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('history-del')) return;
+      $('equationInput').value = item.input;
+      $('equationInput').scrollIntoView({ behavior: 'smooth' });
+      doBalance();
+    });
+    list.appendChild(el);
+  });
+
+  list.querySelectorAll('.history-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      history.splice(parseInt(btn.dataset.idx), 1);
+      localStorage.setItem('chemHistory', JSON.stringify(history));
+      renderHistory();
+    });
+  });
+}
+
+// ─── FAVORITES ───────────────────────────────────
+function updateFavBtn() {
+  if (!lastBalanced) return;
+  const isFav = currentFavs.includes(lastBalanced.balanced);
+  $('favBtn').textContent = isFav ? '★' : '⭐';
+  $('favBtn').classList.toggle('active', isFav);
+}
+
+// ─── LOADING ─────────────────────────────────────
+const loaderMessages = [
+  'Parsing chemical formulas…',
+  'Building atom matrix…',
+  'Applying Gaussian elimination…',
+  'Normalizing coefficients…',
+  'Verifying conservation laws…'
+];
+let loaderIdx = 0, loaderInterval = null;
+
+function showLoading() {
+  $('loadingOverlay').classList.add('visible');
+  loaderIdx = 0;
+  $('loaderText').textContent = loaderMessages[0];
+  loaderInterval = setInterval(() => {
+    loaderIdx = (loaderIdx + 1) % loaderMessages.length;
+    $('loaderText').textContent = loaderMessages[loaderIdx];
+  }, 500);
+}
+function hideLoading() {
+  clearInterval(loaderInterval);
+  $('loadingOverlay').classList.remove('visible');
+}
+
+// ─── MAIN BALANCE ─────────────────────────────────
+async function doBalance() {
+  clearError();
+  const raw = $('equationInput').value.trim();
+  if (!raw) { showError('Please enter a chemical equation.'); return; }
+
+  showLoading();
+  await new Promise(r => setTimeout(r, 600)); // let UI breathe
+
+  try {
+    // Parse
+    const { reactants, products } = parseEquation(raw);
+
+    // Validate: each must be a valid formula
+    [...reactants, ...products].forEach(f => parseFormula(f)); // throws if invalid
+
+    // Balance
+    const coeffs = balanceEquation(reactants, products);
+    const n = reactants.length;
+    const rCoeffs = coeffs.slice(0, n);
+    const pCoeffs = coeffs.slice(n);
+
+    // Store
+    lastBalanced = { input: raw, balanced: plainEquation(reactants, products, coeffs), coeffs, reactants, products };
+
+    // Render balanced display
+    $('balancedDisplay').innerHTML = formatEquation(reactants, products, coeffs);
+
+    // Atom tables
+    buildAtomTable('beforeTable', reactants, products, null, null);
+    buildAtomTable('afterTable', reactants, products, rCoeffs, pCoeffs);
+
+    // Steps
+    const steps = generateSteps(reactants, products, coeffs);
+    renderSteps(steps);
+
+    // Show results
+    $('results-section').classList.add('visible');
+
+    // History
+    saveHistory(raw, lastBalanced.balanced);
+
+    // Fav btn
+    updateFavBtn();
+
+    $('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (e) {
+    showError(e.message || 'Could not balance equation. Check your formula and try again.');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ─── BUTTONS ─────────────────────────────────────
+$('balanceBtn').addEventListener('click', doBalance);
+
+$('clearBtn').addEventListener('click', () => {
+  $('equationInput').value = '';
+  $('results-section').classList.remove('visible');
+  clearError();
+  lastBalanced = null;
+  $('equationInput').focus();
+});
+
+$('clearHistoryBtn').addEventListener('click', () => {
+  history = [];
+  localStorage.removeItem('chemHistory');
+  renderHistory();
+});
+
+// Copy
+$('copyBtn').addEventListener('click', () => {
+  if (!lastBalanced) return;
+  navigator.clipboard.writeText(lastBalanced.balanced).then(() => showToast('Equation copied!'));
+});
+
+// Share
+$('shareBtn').addEventListener('click', () => {
+  if (!lastBalanced) return;
+  const url = `${location.origin}${location.pathname}?eq=${encodeURIComponent(lastBalanced.input)}`;
+  if (navigator.share) {
+    navigator.share({ title: 'ChemBalance', text: lastBalanced.balanced, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => showToast('Share link copied!'));
+  }
+});
+
+// Favorite
+$('favBtn').addEventListener('click', () => {
+  if (!lastBalanced) return;
+  const eq = lastBalanced.balanced;
+  const idx = currentFavs.indexOf(eq);
+  if (idx === -1) { currentFavs.push(eq); showToast('Added to favorites ★'); }
+  else { currentFavs.splice(idx, 1); showToast('Removed from favorites'); }
+  localStorage.setItem('chemFavs', JSON.stringify(currentFavs));
+  updateFavBtn();
+});
+
+// Theme
+$('themeBtn').addEventListener('click', () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  $('themeBtn').textContent = theme === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('chemTheme', theme);
+});
+
+// History toggle
+$('historyBtn').addEventListener('click', () => {
+  const sec = $('history-section');
+  if (!history.length) { showToast('No history yet. Balance some equations first!', 'error'); return; }
+  sec.classList.toggle('visible');
+  if (sec.classList.contains('visible')) sec.scrollIntoView({ behavior: 'smooth' });
+});
+
+// Example chips
+document.querySelectorAll('.example-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    $('equationInput').value = chip.dataset.eq;
+    $('equationInput').focus();
+    doBalance();
+  });
+});
+
+// ─── EXPORT PNG ──────────────────────────────────
+$('exportPngBtn').addEventListener('click', async () => {
+  if (!lastBalanced) return;
+  try {
+    // Draw to canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = 900; canvas.height = 220;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    const grad = ctx.createLinearGradient(0, 0, 900, 220);
+    grad.addColorStop(0, '#0a0e1a');
+    grad.addColorStop(1, '#0f1629');
+    ctx.fillStyle = grad;
+    ctx.roundRect(0, 0, 900, 220, 20);
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.roundRect(0, 0, 900, 220, 20);
+    ctx.stroke();
+
+    // Title
+    ctx.fillStyle = '#8892b0';
+    ctx.font = '500 14px "Space Grotesk", sans-serif';
+    ctx.fillText('Balanced Chemical Equation — ChemBalance', 40, 44);
+
+    // Equation
+    ctx.fillStyle = '#f0f4ff';
+    ctx.font = '700 32px "JetBrains Mono", monospace';
+    const eq = lastBalanced.balanced;
+    ctx.fillText(eq, 40, 110);
+
+    // Verified
+    ctx.fillStyle = '#10d9a0';
+    ctx.font = '500 13px "Space Grotesk", sans-serif';
+    ctx.fillText('✓ Verified — Atoms conserved on both sides', 40, 150);
+
+    // Input
+    ctx.fillStyle = '#4a5568';
+    ctx.font = '400 12px "JetBrains Mono", monospace';
+    ctx.fillText(`Input: ${lastBalanced.input}`, 40, 185);
+
+    // URL
+    ctx.fillStyle = '#4a5568';
+    ctx.font = '400 11px "Space Grotesk", sans-serif';
+    ctx.fillText('ChemBalance — Chemical Equation Balancer', 40, 205);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'balanced-equation.png';
+    a.click();
+    showToast('PNG saved!');
+  } catch (e) {
+    showToast('PNG export failed: ' + e.message, 'error');
+  }
+});
+
+// ─── EXPORT PDF ──────────────────────────────────
+$('exportPdfBtn').addEventListener('click', () => {
+  if (!lastBalanced) return;
+  try {
+    const content = `
+      <!DOCTYPE html><html><head>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #fff; }
+        h1 { color: #0099cc; font-size: 24px; }
+        .eq { font-family: monospace; font-size: 28px; font-weight: bold; margin: 20px 0; color: #111; }
+        .badge { color: #10b981; font-size: 14px; margin-bottom: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th { background: #f0f4ff; padding: 8px; text-align: left; font-size: 13px; }
+        td { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; font-family: monospace; }
+        .step { margin: 10px 0; padding: 10px; background: #f9fafb; border-left: 3px solid #0099cc; }
+        .step-num { display: inline-block; width: 24px; height: 24px; background: #0099cc; color: white; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; margin-right: 8px; }
+      </style></head><body>
+      <h1>⚗️ ChemBalance — Balanced Chemical Equation</h1>
+      <div class="eq">${lastBalanced.balanced}</div>
+      <div class="badge">✓ Verified — Atoms conserved on both sides</div>
+      <p><strong>Input:</strong> <code>${lastBalanced.input}</code></p>
+      <p><strong>Balanced:</strong> <code>${lastBalanced.balanced}</code></p>
+      <p><em>Generated by ChemBalance</em></p>
+      </body></html>
+    `;
+    const win = window.open('', '_blank');
+    win.document.write(content);
+    win.document.close();
+    win.print();
+    showToast('PDF print dialog opened!');
+  } catch (e) {
+    showToast('PDF export failed', 'error');
+  }
+});
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────
+document.addEventListener('keydown', e => {
+  // Esc = clear
+  if (e.key === 'Escape') {
+    $('clearBtn').click();
+    return;
+  }
+  // Enter in textarea = balance (without shift)
+  if (e.key === 'Enter' && document.activeElement === $('equationInput') && !e.shiftKey) {
+    e.preventDefault();
+    doBalance();
+    return;
+  }
+  // Ctrl+C when not selecting text = copy result
+  if (e.ctrlKey && e.key === 'c' && lastBalanced && window.getSelection().toString() === '') {
+    e.preventDefault();
+    $('copyBtn').click();
+  }
+});
+
+// ─── URL PARAM (share) ───────────────────────────
+(function checkUrlParam() {
+  const params = new URLSearchParams(location.search);
+  const eq = params.get('eq');
+  if (eq) {
+    $('equationInput').value = decodeURIComponent(eq);
+    setTimeout(doBalance, 400);
+  }
+})();
+
+// ─── HISTORY on load ─────────────────────────────
+renderHistory();
+
+// ═══════════════════════════════════════════════════════════════
+// PERIODIC TABLE
+// ═══════════════════════════════════════════════════════════════
+
+const PT_DATA = [
+  // [symbol, name, atomicNum, category, gridCol, gridRow]
+  ['H','Hydrogen',1,'nonmetal',1,1],['He','Helium',2,'noble',18,1],
+  ['Li','Lithium',3,'alkali',1,2],['Be','Beryllium',4,'alkaline',2,2],
+  ['B','Boron',5,'metalloid',13,2],['C','Carbon',6,'nonmetal',14,2],
+  ['N','Nitrogen',7,'nonmetal',15,2],['O','Oxygen',8,'nonmetal',16,2],
+  ['F','Fluorine',9,'halogen',17,2],['Ne','Neon',10,'noble',18,2],
+  ['Na','Sodium',11,'alkali',1,3],['Mg','Magnesium',12,'alkaline',2,3],
+  ['Al','Aluminum',13,'post-transition',13,3],['Si','Silicon',14,'metalloid',14,3],
+  ['P','Phosphorus',15,'nonmetal',15,3],['S','Sulfur',16,'nonmetal',16,3],
+  ['Cl','Chlorine',17,'halogen',17,3],['Ar','Argon',18,'noble',18,3],
+  ['K','Potassium',19,'alkali',1,4],['Ca','Calcium',20,'alkaline',2,4],
+  ['Sc','Scandium',21,'transition',3,4],['Ti','Titanium',22,'transition',4,4],
+  ['V','Vanadium',23,'transition',5,4],['Cr','Chromium',24,'transition',6,4],
+  ['Mn','Manganese',25,'transition',7,4],['Fe','Iron',26,'transition',8,4],
+  ['Co','Cobalt',27,'transition',9,4],['Ni','Nickel',28,'transition',10,4],
+  ['Cu','Copper',29,'transition',11,4],['Zn','Zinc',30,'transition',12,4],
+  ['Ga','Gallium',31,'post-transition',13,4],['Ge','Germanium',32,'metalloid',14,4],
+  ['As','Arsenic',33,'metalloid',15,4],['Se','Selenium',34,'nonmetal',16,4],
+  ['Br','Bromine',35,'halogen',17,4],['Kr','Krypton',36,'noble',18,4],
+  ['Rb','Rubidium',37,'alkali',1,5],['Sr','Strontium',38,'alkaline',2,5],
+  ['Y','Yttrium',39,'transition',3,5],['Zr','Zirconium',40,'transition',4,5],
+  ['Nb','Niobium',41,'transition',5,5],['Mo','Molybdenum',42,'transition',6,5],
+  ['Tc','Technetium',43,'transition',7,5],['Ru','Ruthenium',44,'transition',8,5],
+  ['Rh','Rhodium',45,'transition',9,5],['Pd','Palladium',46,'transition',10,5],
+  ['Ag','Silver',47,'transition',11,5],['Cd','Cadmium',48,'transition',12,5],
+  ['In','Indium',49,'post-transition',13,5],['Sn','Tin',50,'post-transition',14,5],
+  ['Sb','Antimony',51,'metalloid',15,5],['Te','Tellurium',52,'metalloid',16,5],
+  ['I','Iodine',53,'halogen',17,5],['Xe','Xenon',54,'noble',18,5],
+  ['Cs','Cesium',55,'alkali',1,6],['Ba','Barium',56,'alkaline',2,6],
+  ['La','Lanthanum',57,'lanthanide',3,6],['Hf','Hafnium',72,'transition',4,6],
+  ['Ta','Tantalum',73,'transition',5,6],['W','Tungsten',74,'transition',6,6],
+  ['Re','Rhenium',75,'transition',7,6],['Os','Osmium',76,'transition',8,6],
+  ['Ir','Iridium',77,'transition',9,6],['Pt','Platinum',78,'transition',10,6],
+  ['Au','Gold',79,'transition',11,6],['Hg','Mercury',80,'transition',12,6],
+  ['Tl','Thallium',81,'post-transition',13,6],['Pb','Lead',82,'post-transition',14,6],
+  ['Bi','Bismuth',83,'post-transition',15,6],['Po','Polonium',84,'metalloid',16,6],
+  ['At','Astatine',85,'halogen',17,6],['Rn','Radon',86,'noble',18,6],
+  ['Fr','Francium',87,'alkali',1,7],['Ra','Radium',88,'alkaline',2,7],
+  ['Ac','Actinium',89,'actinide',3,7],['Rf','Rutherfordium',104,'transition',4,7],
+  ['Db','Dubnium',105,'transition',5,7],['Sg','Seaborgium',106,'transition',6,7],
+  ['Bh','Bohrium',107,'transition',7,7],['Hs','Hassium',108,'transition',8,7],
+  ['Mt','Meitnerium',109,'transition',9,7],['Ds','Darmstadtium',110,'transition',10,7],
+  ['Rg','Roentgenium',111,'transition',11,7],['Cn','Copernicium',112,'transition',12,7],
+  ['Nh','Nihonium',113,'post-transition',13,7],['Fl','Flerovium',114,'post-transition',14,7],
+  ['Mc','Moscovium',115,'post-transition',15,7],['Lv','Livermorium',116,'post-transition',16,7],
+  ['Ts','Tennessine',117,'halogen',17,7],['Og','Oganesson',118,'noble',18,7],
+  // Lanthanides row 9
+  ['Ce','Cerium',58,'lanthanide',4,9],['Pr','Praseodymium',59,'lanthanide',5,9],
+  ['Nd','Neodymium',60,'lanthanide',6,9],['Pm','Promethium',61,'lanthanide',7,9],
+  ['Sm','Samarium',62,'lanthanide',8,9],['Eu','Europium',63,'lanthanide',9,9],
+  ['Gd','Gadolinium',64,'lanthanide',10,9],['Tb','Terbium',65,'lanthanide',11,9],
+  ['Dy','Dysprosium',66,'lanthanide',12,9],['Ho','Holmium',67,'lanthanide',13,9],
+  ['Er','Erbium',68,'lanthanide',14,9],['Tm','Thulium',69,'lanthanide',15,9],
+  ['Yb','Ytterbium',70,'lanthanide',16,9],['Lu','Lutetium',71,'lanthanide',17,9],
+  // Actinides row 10
+  ['Th','Thorium',90,'actinide',4,10],['Pa','Protactinium',91,'actinide',5,10],
+  ['U','Uranium',92,'actinide',6,10],['Np','Neptunium',93,'actinide',7,10],
+  ['Pu','Plutonium',94,'actinide',8,10],['Am','Americium',95,'actinide',9,10],
+  ['Cm','Curium',96,'actinide',10,10],['Bk','Berkelium',97,'actinide',11,10],
+  ['Cf','Californium',98,'actinide',12,10],['Es','Einsteinium',99,'actinide',13,10],
+  ['Fm','Fermium',100,'actinide',14,10],['Md','Mendelevium',101,'actinide',15,10],
+  ['No','Nobelium',102,'actinide',16,10],['Lr','Lawrencium',103,'actinide',17,10],
+];
+
+function buildPeriodicTable() {
+  const grid = $('periodicGrid');
+  grid.style.gridTemplateRows = 'repeat(10, 1fr)';
+
+  // Create a 10-row × 18-col grid
+  const cells = {};
+  PT_DATA.forEach(([sym, name, num, cat, col, row]) => {
+    cells[`${row},${col}`] = { sym, name, num, cat };
+  });
+
+  for (let row = 1; row <= 10; row++) {
+    if (row === 8) {
+      // Gap row
+      for (let col = 1; col <= 18; col++) {
+        const el = document.createElement('div');
+        el.className = 'pt-cell empty';
+        el.style.gridColumn = col; el.style.gridRow = row;
+        grid.appendChild(el);
+      }
+      continue;
+    }
+    for (let col = 1; col <= 18; col++) {
+      const data = cells[`${row},${col}`];
+      const el = document.createElement('div');
+      if (data) {
+        el.className = `pt-cell ${data.cat}`;
+        el.innerHTML = `<span class="pt-num">${data.num}</span><span class="pt-sym">${data.sym}</span><span class="pt-name">${data.name.substring(0,6)}</span>`;
+        el.title = `${data.name} (${data.sym}) — Z=${data.num}`;
+        el.addEventListener('click', () => {
+          // Insert into equation input at cursor
+          const input = $('equationInput');
+          const pos = input.selectionStart;
+          const val = input.value;
+          input.value = val.slice(0, pos) + data.sym + val.slice(pos);
+          input.selectionStart = input.selectionEnd = pos + data.sym.length;
+          input.focus();
+          $('periodicModal').classList.remove('visible');
+          showToast(`Inserted ${data.sym} (${data.name})`);
+        });
+      } else {
+        el.className = 'pt-cell empty';
+      }
+      el.style.gridColumn = col; el.style.gridRow = row;
+      grid.appendChild(el);
+    }
+  }
+}
+
+buildPeriodicTable();
+
+$('periodicBtn').addEventListener('click', () => $('periodicModal').classList.add('visible'));
+$('closePeriodicBtn').addEventListener('click', () => $('periodicModal').classList.remove('visible'));
+$('periodicModal').addEventListener('click', e => { if (e.target === $('periodicModal')) $('periodicModal').classList.remove('visible'); });
+
+// ─── MOLAR MASS MODAL ────────────────────────────
+$('molarBtn').addEventListener('click', () => {
+  $('molarModal').classList.add('visible');
+  $('molarInput').focus();
+});
+$('closeMolarBtn').addEventListener('click', () => $('molarModal').classList.remove('visible'));
+$('molarModal').addEventListener('click', e => { if (e.target === $('molarModal')) $('molarModal').classList.remove('visible'); });
+
+function doCalcMolar() {
+  const formula = $('molarInput').value.trim();
+  if (!formula) return;
+  try {
+    const { total, breakdown } = calcMolarMass(formula);
+    $('molarResult').innerHTML = `
+      <div style="color:var(--cyan);font-size:18px;font-weight:700;margin-bottom:8px">${formula} = ${total.toFixed(3)} g/mol</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.8">${breakdown.join(' &nbsp;·&nbsp; ')}</div>
+    `;
+    $('molarResult').classList.add('visible');
+  } catch (e) {
+    $('molarResult').innerHTML = `<span style="color:var(--red)">${e.message}</span>`;
+    $('molarResult').classList.add('visible');
+  }
+}
+
+$('calcMolarBtn').addEventListener('click', doCalcMolar);
+$('molarInput').addEventListener('keydown', e => { if (e.key === 'Enter') doCalcMolar(); });
+
+// ─── SERVICE WORKER (PWA) ────────────────────────
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'chembalance-v1';
+    self.addEventListener('install', e => e.waitUntil(
+      caches.open(CACHE).then(c => c.addAll(['/']))
+    ));
+    self.addEventListener('fetch', e => e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('/')))
+    ));
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+</script>
+</body>
+</html>
