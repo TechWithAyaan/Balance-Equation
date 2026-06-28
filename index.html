@@ -997,6 +997,393 @@ kbd {
   .kbd-hints { display: none; }
 }
 
+/* ═══════════════════════════════════════════
+   TEST / QUIZ SECTION
+═══════════════════════════════════════════ */
+.test-section { margin-top: 16px; }
+
+.test-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.test-select {
+  height: 44px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+}
+.test-select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim); }
+.test-select option { background: #1a2035; color: var(--text-1); }
+
+/* Score bar */
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--cyan-dim), var(--violet-dim));
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.score-item { text-align: center; }
+.score-num { font-size: 26px; font-weight: 700; font-family: var(--font-mono); line-height: 1; }
+.score-num.correct { color: var(--green); }
+.score-num.wrong { color: var(--red); }
+.score-num.total { color: var(--cyan); }
+.score-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.score-divider { width: 1px; height: 36px; background: var(--glass-border); }
+.score-pct {
+  margin-left: auto;
+  font-size: 32px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Quiz question card */
+.quiz-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  transition: all var(--transition);
+  animation: card-appear 0.35s ease both;
+}
+@keyframes card-appear {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.quiz-card.correct-card {
+  border-color: var(--green);
+  background: rgba(16,217,160,0.05);
+}
+.quiz-card.wrong-card {
+  border-color: var(--red);
+  background: rgba(255,77,109,0.05);
+}
+
+.quiz-q-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.quiz-q-num {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.quiz-difficulty-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.badge-easy { background: rgba(16,217,160,0.15); color: var(--green); border: 1px solid rgba(16,217,160,0.3); }
+.badge-medium { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+.badge-hard { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+
+.quiz-question-text {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.5;
+  flex: 1;
+}
+
+/* Equation to balance display in quiz */
+.quiz-eq-display {
+  font-family: var(--font-mono);
+  font-size: clamp(14px, 2.5vw, 18px);
+  font-weight: 600;
+  color: var(--text-1);
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+}
+[data-theme="light"] .quiz-eq-display { background: rgba(0,0,0,0.04); }
+
+/* Two modes: answer-input + check-own */
+.quiz-mode-tabs {
+  display: flex;
+  gap: 0;
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+.quiz-mode-tab {
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.quiz-mode-tab.active {
+  background: linear-gradient(135deg, var(--cyan), #0099cc);
+  color: #0a0e1a;
+  font-weight: 600;
+}
+
+/* Answer row */
+.answer-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.coeff-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.coeff-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coeff-box {
+  width: 48px;
+  height: 42px;
+  text-align: center;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  outline: none;
+  transition: all var(--transition);
+}
+.coeff-box:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim); }
+.coeff-box.input-correct { border-color: var(--green) !important; background: rgba(16,217,160,0.12); color: var(--green); }
+.coeff-box.input-wrong { border-color: var(--red) !important; background: rgba(255,77,109,0.12); color: var(--red); }
+.coeff-box.input-revealed { border-color: var(--amber) !important; background: rgba(251,191,36,0.12); color: var(--amber); }
+
+.formula-label {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.arrow-label {
+  font-size: 18px;
+  color: var(--violet);
+  margin: 0 4px;
+}
+
+.plus-label {
+  font-size: 16px;
+  color: var(--text-3);
+  margin: 0 2px;
+}
+
+/* Feedback */
+.quiz-feedback {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.quiz-feedback.visible { display: flex; }
+.quiz-feedback.fb-correct {
+  background: rgba(16,217,160,0.1);
+  border: 1px solid rgba(16,217,160,0.3);
+  color: var(--green);
+}
+.quiz-feedback.fb-wrong {
+  background: rgba(255,77,109,0.1);
+  border: 1px solid rgba(255,77,109,0.3);
+  color: var(--red);
+}
+.fb-icon { font-size: 18px; flex-shrink: 0; }
+.fb-text strong { display: block; margin-bottom: 3px; }
+
+/* Own answer mode — big textarea */
+.own-answer-area {
+  width: 100%;
+  min-height: 70px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  resize: none;
+  outline: none;
+  transition: all var(--transition);
+  margin-bottom: 10px;
+}
+.own-answer-area:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-dim); }
+.own-answer-area.oa-correct { border-color: var(--green); background: rgba(16,217,160,0.05); }
+.own-answer-area.oa-wrong { border-color: var(--red); background: rgba(255,77,109,0.05); }
+.own-answer-area.oa-revealed { border-color: var(--amber); background: rgba(251,191,36,0.05); color: var(--amber); }
+
+/* Check btn per card */
+.check-btn {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: linear-gradient(135deg, var(--cyan), #0099cc);
+  color: #0a0e1a;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.check-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px var(--cyan-glow); }
+.check-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.show-answer-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.show-answer-btn:hover { background: var(--glass-hover); color: var(--text-1); }
+
+/* Progress bar */
+.quiz-progress {
+  height: 4px;
+  background: var(--glass-border);
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.quiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* Empty quiz state */
+.quiz-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+.quiz-empty .quiz-empty-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+
+/* Equation balance row — Mode 1 */
+.eq-balance-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+[data-theme="light"] .eq-balance-row { background: rgba(0,0,0,0.04); }
+
+/* Write mode unbalanced display — Mode 2 */
+.write-mode-unbalanced {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+[data-theme="light"] .write-mode-unbalanced { background: rgba(0,0,0,0.04); }
+
+.wm-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.wm-eq {
+  font-family: var(--font-mono);
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: 0.5px;
+}
+
+/* Light theme */
+[data-theme="light"] .test-select { background-color: white; }
+[data-theme="light"] .coeff-box { background: rgba(0,0,0,0.04); }
+[data-theme="light"] .own-answer-area { background: rgba(0,0,0,0.03); }
+[data-theme="light"] .quiz-mode-tabs { background: rgba(0,0,0,0.06); }
+[data-theme="light"] .quiz-eq-display { background: rgba(0,0,0,0.04); }
+
 /* Light theme adjustments */
 [data-theme="light"] .equation-input {
   background: rgba(0,0,0,0.03);
@@ -1024,6 +1411,282 @@ kbd {
   padding: 4px 12px;
   margin-top: 10px;
 }
+
+/* ═══════════════════════════════════════════
+   SELF-CHECK CARD
+═══════════════════════════════════════════ */
+.sc-card {
+  margin-top: 16px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.sc-card:hover { border-color: rgba(124,58,237,0.3); }
+
+.sc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(0,212,255,0.04));
+}
+.sc-header-left { display: flex; align-items: center; gap: 14px; }
+.sc-icon { font-size: 28px; }
+.sc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.3px;
+}
+.sc-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+.sc-body { padding: 24px 28px; }
+
+.sc-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.sc-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--cyan), #0099cc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0a0e1a;
+  flex-shrink: 0;
+  margin-top: 28px;
+}
+.sc-badge-ans {
+  background: linear-gradient(135deg, var(--violet), #5b21b6);
+  color: #fff;
+}
+
+.sc-field-wrap { flex: 1; }
+
+.sc-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.sc-field {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  outline: none;
+  transition: all var(--transition);
+  letter-spacing: 0.3px;
+}
+.sc-field::placeholder { color: var(--text-3); font-weight: 400; font-size: 14px; }
+.sc-field:focus {
+  border-color: var(--violet);
+  background: rgba(124,58,237,0.04);
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.12);
+}
+.sc-field.sc-ok {
+  border-color: var(--green) !important;
+  background: rgba(16,217,160,0.05) !important;
+  box-shadow: 0 0 0 4px rgba(16,217,160,0.12) !important;
+}
+.sc-field.sc-err {
+  border-color: var(--red) !important;
+  background: rgba(255,77,109,0.05) !important;
+  box-shadow: 0 0 0 4px rgba(255,77,109,0.12) !important;
+}
+[data-theme="light"] .sc-field { background: rgba(0,0,0,0.03); }
+
+.sc-field-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 6px;
+}
+
+.sc-divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 20px 0;
+}
+
+.sc-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.sc-check-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 32px;
+  background: linear-gradient(135deg, var(--violet), #5b21b6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+}
+.sc-check-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124,58,237,0.5);
+}
+.sc-check-btn:active { transform: translateY(0); }
+.sc-btn-icon { font-size: 18px; }
+
+.sc-clear-btn {
+  height: 50px;
+  padding: 0 22px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-3);
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.sc-clear-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(255,77,109,0.06);
+}
+
+/* Result panel */
+.sc-result { display: none; margin-top: 24px; animation: card-appear 0.3s ease; }
+.sc-result.visible { display: block; }
+
+.sc-result-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+.sc-result-banner.banner-ok {
+  background: rgba(16,217,160,0.1);
+  border: 1px solid rgba(16,217,160,0.3);
+}
+.sc-result-banner.banner-err {
+  background: rgba(255,77,109,0.1);
+  border: 1px solid rgba(255,77,109,0.3);
+}
+.sc-result-emoji { font-size: 40px; line-height: 1; }
+.sc-result-msg-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.banner-ok  .sc-result-msg-title { color: var(--green); }
+.banner-err .sc-result-msg-title { color: var(--red); }
+.sc-result-msg-sub { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+/* Compare box */
+.sc-compare {
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.sc-compare-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 18px;
+}
+.sc-compare-row + .sc-compare-row {
+  border-top: 1px solid var(--glass-border);
+}
+.sc-compare-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: 90px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.sc-compare-lbl.lbl-yours   { color: var(--red); }
+.sc-compare-lbl.lbl-correct { color: var(--green); }
+.sc-compare-lbl.lbl-same    { color: var(--cyan); }
+.sc-compare-val {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+  word-break: break-all;
+}
+.val-yours   { color: var(--red); }
+.val-correct { color: var(--green); }
+.val-same    { color: var(--cyan); }
+
+/* Atom table */
+.sc-atom-section { margin-top: 4px; }
+.sc-atom-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.sc-atom-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+.sc-atom-tbl th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 9px 14px;
+  text-align: left;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--glass-border);
+}
+.sc-atom-tbl td {
+  padding: 9px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.sc-atom-tbl td:first-child { font-weight: 700; color: var(--cyan); }
+.sc-atom-tbl tr:last-child td { border-bottom: none; }
+.sc-atom-tbl .row-ok  td:not(:first-child) { color: var(--green); }
+.sc-atom-tbl .row-bad td:not(:first-child) { color: var(--red); }
+.sc-atom-tbl .row-ok  td:last-child { font-weight: 700; }
+.sc-atom-tbl .row-bad td:last-child { font-weight: 700; }
+
+
 </style>
 </head>
 <body>
@@ -1165,6 +1828,137 @@ kbd {
       <button class="btn btn-ghost" id="clearHistoryBtn" style="height:30px;font-size:12px;padding:0 12px;flex:0">Clear All</button>
     </div>
     <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- ═══════════════ TEST / QUIZ SECTION ═══════════════ -->
+  <div class="card test-section" id="testSection">
+    <div class="card-title">🧪 Chemistry Quiz — Balance the Equations</div>
+
+    <!-- Controls row -->
+    <div class="test-controls">
+      <select class="test-select" id="quizDifficulty" title="Difficulty">
+        <option value="easy">🟢 Easy</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="hard">🔴 Hard</option>
+        <option value="all">⚡ All Levels</option>
+      </select>
+      <select class="test-select" id="quizCount" title="Number of questions">
+        <option value="3">3 Questions</option>
+        <option value="5" selected>5 Questions</option>
+        <option value="10">10 Questions</option>
+        <option value="15">15 Questions</option>
+      </select>
+      <div class="quiz-mode-tabs">
+        <button class="quiz-mode-tab active" id="modeCoeffBtn" onclick="setQuizMode('coeff')">✏️ Fill Coefficients</button>
+        <button class="quiz-mode-tab" id="modeOwnBtn" onclick="setQuizMode('own')">📝 Type Full Answer</button>
+      </div>
+      <button class="btn btn-primary" id="generateQuizBtn" style="flex:0;height:44px;padding:0 24px;font-size:14px">
+        🎲 Generate Quiz
+      </button>
+    </div>
+
+    <!-- Score bar -->
+    <div class="score-bar" id="scoreBar" style="display:none">
+      <div class="score-item">
+        <div class="score-num correct" id="scoreCorrect">0</div>
+        <div class="score-label">Correct</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="score-num wrong" id="scoreWrong">0</div>
+        <div class="score-label">Wrong</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="score-num total" id="scoreTotal">0</div>
+        <div class="score-label">Answered</div>
+      </div>
+      <div class="score-pct" id="scorePct">—</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="quiz-progress" id="quizProgress" style="display:none">
+      <div class="quiz-progress-fill" id="quizProgressFill" style="width:0%"></div>
+    </div>
+
+    <!-- Quiz cards container -->
+    <div id="quizCardsContainer">
+      <div class="quiz-empty">
+        <span class="quiz-empty-icon">⚗️</span>
+        Select difficulty &amp; count, then click <strong>Generate Quiz</strong> to start!
+      </div>
+    </div>
+
+    <!-- End buttons -->
+    <div id="quizEndBtns" style="display:none;gap:10px;margin-top:16px;flex-wrap:wrap" class="btn-row">
+      <button class="btn btn-primary" id="retryQuizBtn">🔄 New Quiz (Same Settings)</button>
+      <button class="btn btn-secondary" id="resetQuizBtn">↺ Reset Scores</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ CUSTOM CHECKER CARD ═══════════ -->
+  <div class="sc-card" id="selfCheckCard">
+    <div class="sc-header">
+      <div class="sc-header-left">
+        <div class="sc-icon">🧪</div>
+        <div>
+          <div class="sc-title">Apna Sawaal Khud Check Karo</div>
+          <div class="sc-sub">Question aur jawab dono aap likho — hum sirf check karein ge</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sc-body">
+      <!-- Input 1 -->
+      <div class="sc-row">
+        <div class="sc-badge">Q</div>
+        <div class="sc-field-wrap">
+          <div class="sc-field-label">Unbalanced Equation (Apna Sawaal)</div>
+          <input
+            id="scQuestion"
+            class="sc-field"
+            type="text"
+            placeholder="H2 + O2 -> H2O"
+            spellcheck="false"
+            autocomplete="off"
+          >
+          <div class="sc-field-hint">Sirf formulas likhein — coefficients mat lagayen</div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="sc-divider"></div>
+
+      <!-- Input 2 -->
+      <div class="sc-row">
+        <div class="sc-badge sc-badge-ans">A</div>
+        <div class="sc-field-wrap">
+          <div class="sc-field-label">Apna Jawab (Balanced Equation)</div>
+          <input
+            id="scAnswer"
+            class="sc-field"
+            type="text"
+            placeholder="2H2 + O2 -> 2H2O"
+            spellcheck="false"
+            autocomplete="off"
+          >
+          <div class="sc-field-hint">Poora balanced equation likhein coefficients ke saath</div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="sc-actions">
+        <button class="sc-check-btn" id="scCheckBtn">
+          <span class="sc-btn-icon">✓</span> Check Karo
+        </button>
+        <button class="sc-clear-btn" id="scClearBtn">✕ Clear</button>
+      </div>
+
+      <!-- Result -->
+      <div class="sc-result" id="scResult">
+        <!-- filled by JS -->
+      </div>
+    </div>
   </div>
 
 </div><!-- /app -->
@@ -2187,6 +2981,519 @@ function doCalcMolar() {
 $('calcMolarBtn').addEventListener('click', doCalcMolar);
 $('molarInput').addEventListener('keydown', e => { if (e.key === 'Enter') doCalcMolar(); });
 
+// ═══════════════════════════════════════════════════════════════
+// QUIZ / TEST ENGINE
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Question bank — {eq, difficulty, hint, topic}
+ */
+const QUESTION_BANK = [
+  // ── EASY ──
+  { eq:'H2 + O2 -> H2O', difficulty:'easy', topic:'Synthesis', hint:'Think water formation' },
+  { eq:'N2 + H2 -> NH3', difficulty:'easy', topic:'Synthesis', hint:'Haber process — ammonia' },
+  { eq:'C + O2 -> CO2', difficulty:'easy', topic:'Combustion', hint:'Carbon burning' },
+  { eq:'Mg + O2 -> MgO', difficulty:'easy', topic:'Synthesis', hint:'Magnesium burning' },
+  { eq:'Fe + S -> FeS', difficulty:'easy', topic:'Synthesis', hint:'Iron sulfide' },
+  { eq:'Zn + HCl -> ZnCl2 + H2', difficulty:'easy', topic:'Single Displacement', hint:'Zinc displaces hydrogen' },
+  { eq:'Na + Cl2 -> NaCl', difficulty:'easy', topic:'Synthesis', hint:'Table salt formation' },
+  { eq:'H2O2 -> H2O + O2', difficulty:'easy', topic:'Decomposition', hint:'Hydrogen peroxide decomposition' },
+  { eq:'CaCO3 -> CaO + CO2', difficulty:'easy', topic:'Decomposition', hint:'Limestone heating' },
+  { eq:'Al + O2 -> Al2O3', difficulty:'easy', topic:'Synthesis', hint:'Aluminium oxide formation' },
+  { eq:'S + O2 -> SO2', difficulty:'easy', topic:'Combustion', hint:'Sulfur burning' },
+  { eq:'P + O2 -> P2O5', difficulty:'easy', topic:'Synthesis', hint:'Phosphorus pentoxide' },
+  { eq:'Cu + O2 -> CuO', difficulty:'easy', topic:'Synthesis', hint:'Copper oxidation' },
+
+  // ── MEDIUM ──
+  { eq:'Fe + O2 -> Fe2O3', difficulty:'medium', topic:'Oxidation', hint:'Iron rusting' },
+  { eq:'C3H8 + O2 -> CO2 + H2O', difficulty:'medium', topic:'Combustion', hint:'Propane combustion' },
+  { eq:'CH4 + O2 -> CO2 + H2O', difficulty:'medium', topic:'Combustion', hint:'Methane (natural gas) burning' },
+  { eq:'C2H6 + O2 -> CO2 + H2O', difficulty:'medium', topic:'Combustion', hint:'Ethane combustion' },
+  { eq:'Al + HCl -> AlCl3 + H2', difficulty:'medium', topic:'Single Displacement', hint:'Aluminium reacts with acid' },
+  { eq:'Fe + HCl -> FeCl2 + H2', difficulty:'medium', topic:'Single Displacement', hint:'Iron reacts with acid' },
+  { eq:'Ca(OH)2 + HCl -> CaCl2 + H2O', difficulty:'medium', topic:'Acid-Base', hint:'Neutralization reaction' },
+  { eq:'NaOH + H2SO4 -> Na2SO4 + H2O', difficulty:'medium', topic:'Acid-Base', hint:'Strong acid + strong base' },
+  { eq:'AgNO3 + NaCl -> AgCl + NaNO3', difficulty:'medium', topic:'Double Displacement', hint:'Silver chloride precipitate' },
+  { eq:'BaCl2 + Na2SO4 -> BaSO4 + NaCl', difficulty:'medium', topic:'Precipitation', hint:'Barium sulfate precipitate' },
+  { eq:'Na2CO3 + HCl -> NaCl + H2O + CO2', difficulty:'medium', topic:'Acid-Base', hint:'Soda ash + acid' },
+  { eq:'C6H12O6 + O2 -> CO2 + H2O', difficulty:'medium', topic:'Combustion', hint:'Glucose combustion / cellular respiration' },
+  { eq:'Fe2O3 + CO -> Fe + CO2', difficulty:'medium', topic:'Redox', hint:'Blast furnace iron smelting' },
+  { eq:'Pb(NO3)2 + KI -> PbI2 + KNO3', difficulty:'medium', topic:'Precipitation', hint:'Lead iodide — beautiful yellow' },
+  { eq:'CuSO4 + NaOH -> Cu(OH)2 + Na2SO4', difficulty:'medium', topic:'Precipitation', hint:'Copper hydroxide precipitate' },
+
+  // ── HARD ──
+  { eq:'KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2', difficulty:'hard', topic:'Redox', hint:'Potassium permanganate oxidizing HCl' },
+  { eq:'Ca(OH)2 + H3PO4 -> Ca3(PO4)2 + H2O', difficulty:'hard', topic:'Acid-Base', hint:'Calcium phosphate — bone mineral' },
+  { eq:'Al + Fe2O3 -> Al2O3 + Fe', difficulty:'hard', topic:'Thermite Redox', hint:'Thermite reaction — very exothermic' },
+  { eq:'Cu + HNO3 -> Cu(NO3)2 + NO + H2O', difficulty:'hard', topic:'Redox', hint:'Dilute nitric acid + copper' },
+  { eq:'K2Cr2O7 + HCl -> KCl + CrCl3 + H2O + Cl2', difficulty:'hard', topic:'Redox', hint:'Dichromate oxidizing HCl' },
+  { eq:'Fe3O4 + H2 -> Fe + H2O', difficulty:'hard', topic:'Redox', hint:'Magnetite reduction' },
+  { eq:'C2H5OH + O2 -> CO2 + H2O', difficulty:'hard', topic:'Combustion', hint:'Ethanol combustion' },
+  { eq:'Cr2O3 + Al -> Al2O3 + Cr', difficulty:'hard', topic:'Thermite Redox', hint:'Chromium thermite' },
+  { eq:'FeS2 + O2 -> Fe2O3 + SO2', difficulty:'hard', topic:'Roasting', hint:'Pyrite roasting' },
+  { eq:'NH3 + O2 -> NO + H2O', difficulty:'hard', topic:'Redox', hint:'Ostwald process — ammonia oxidation' },
+  { eq:'P4 + O2 -> P2O5', difficulty:'hard', topic:'Combustion', hint:'White phosphorus burning' },
+  { eq:'C12H22O11 + O2 -> CO2 + H2O', difficulty:'hard', topic:'Combustion', hint:'Sucrose (table sugar) combustion' },
+  { eq:'MnO2 + HCl -> MnCl2 + Cl2 + H2O', difficulty:'hard', topic:'Redox', hint:'Manganese dioxide as oxidizer' },
+  { eq:'Bi(NO3)3 + Na2S -> Bi2S3 + NaNO3', difficulty:'hard', topic:'Precipitation', hint:'Bismuth sulfide — black precipitate' },
+];
+
+let quizMode = 'coeff'; // 'coeff' | 'own'
+let quizQuestions = []; // current quiz questions with answers
+let quizAnswered = {}; // {idx: 'correct'|'wrong'}
+let totalCorrect = 0, totalWrong = 0;
+
+function setQuizMode(mode) {
+  quizMode = mode;
+  $('modeCoeffBtn').classList.toggle('active', mode === 'coeff');
+  $('modeOwnBtn').classList.toggle('active', mode === 'own');
+}
+
+window.setQuizMode = setQuizMode;
+
+/** Shuffle array */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Generate and render quiz */
+function generateQuiz() {
+  const diff = $('quizDifficulty').value;
+  const count = parseInt($('quizCount').value);
+
+  let pool = diff === 'all'
+    ? QUESTION_BANK
+    : QUESTION_BANK.filter(q => q.difficulty === diff);
+
+  if (pool.length === 0) {
+    showToast('No questions for this difficulty!', 'error');
+    return;
+  }
+
+  const selected = shuffle(pool).slice(0, Math.min(count, pool.length));
+
+  // Balance each question to get the answer
+  quizQuestions = selected.map(q => {
+    try {
+      const { reactants, products } = parseEquation(q.eq);
+      const coeffs = balanceEquation(reactants, products);
+      return { ...q, reactants, products, coeffs, answered: false };
+    } catch (e) {
+      return null;
+    }
+  }).filter(Boolean);
+
+  quizAnswered = {};
+  totalCorrect = 0;
+  totalWrong = 0;
+
+  // Reset score display
+  updateScoreBar();
+  $('scoreBar').style.display = 'flex';
+  $('quizProgress').style.display = 'block';
+  $('quizProgressFill').style.width = '0%';
+  $('quizEndBtns').style.display = 'none';
+
+  renderQuizCards();
+}
+
+/** Render all quiz cards */
+function renderQuizCards() {
+  const container = $('quizCardsContainer');
+  container.innerHTML = '';
+
+  quizQuestions.forEach((q, idx) => {
+    const card = buildQuizCard(q, idx);
+    card.style.animationDelay = `${idx * 0.07}s`;
+    container.appendChild(card);
+  });
+}
+
+/** Build a single quiz card DOM element */
+function buildQuizCard(q, idx) {
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  card.id = `quiz-card-${idx}`;
+
+  const badgeClass = `badge-${q.difficulty}`;
+  const badgeLabel = q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1);
+
+  let answerHTML = '';
+
+  if (quizMode === 'coeff') {
+    // ── MODE 1: Fill Coefficients ─────────────────────────────
+    // Show equation with blank [ ? ] boxes BEFORE each compound.
+    // Formula is always visible — user only fills the number.
+    const n = q.reactants.length;
+
+    const buildSide = (formulas, startIdx) =>
+      formulas.map((f, i) => {
+        const globalIdx = startIdx + i;
+        const isLast = i === formulas.length - 1;
+        return `
+          <div class="coeff-input-group">
+            <input
+              class="coeff-box"
+              type="number" min="1" max="99"
+              placeholder="?"
+              id="coeff-${idx}-${globalIdx}"
+              autocomplete="off"
+              title="Coefficient for ${f}"
+            >
+            <span class="formula-label">${f}</span>
+          </div>${!isLast ? '<span class="plus-label"> + </span>' : ''}
+        `;
+      }).join('');
+
+    answerHTML = `
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+        ✏️ Enter the <strong style="color:var(--cyan)">coefficient number</strong> in each box to balance the equation:
+      </div>
+      <div class="eq-balance-row">
+        ${buildSide(q.reactants, 0)}
+        <span class="arrow-label" style="margin:0 10px;font-size:22px">→</span>
+        ${buildSide(q.products, n)}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="check-btn" onclick="checkCoeffAnswer(${idx})">✓ Check Answer</button>
+        <button class="show-answer-btn" onclick="revealAnswer(${idx})">👁 Show Answer</button>
+      </div>
+    `;
+
+  } else {
+    // ── MODE 2: Write Full Balanced Equation ──────────────────
+    // Show only reactants → products (unbalanced).
+    // User writes their complete answer from scratch.
+    const unbalanced = q.reactants.join(' + ') + '  →  ' + q.products.join(' + ');
+    const placeholder = `e.g.  ${q.reactants.map((f,i) => (q.coeffs[i]>1?q.coeffs[i]:'')+f).join(' + ')} -> ${q.products.map((f,i) => (q.coeffs[q.reactants.length+i]>1?q.coeffs[q.reactants.length+i]:'')+f).join(' + ')}`;
+
+    answerHTML = `
+      <div class="write-mode-unbalanced">
+        <span class="wm-label">Unbalanced:</span>
+        <span class="wm-eq">${unbalanced}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-3);margin:10px 0 7px">
+        📝 Write the <strong style="color:var(--cyan)">full balanced equation</strong> below — include all coefficients:
+      </div>
+      <textarea
+        class="own-answer-area"
+        id="own-${idx}"
+        placeholder="${placeholder}"
+        rows="2"
+        spellcheck="false"
+      ></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="check-btn" onclick="checkOwnAnswer(${idx})">✓ Check Answer</button>
+        <button class="show-answer-btn" onclick="revealAnswer(${idx})">👁 Show Answer</button>
+      </div>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="quiz-q-header">
+      <span class="quiz-q-num">Q${idx + 1}</span>
+      <div class="quiz-question-text">
+        <strong style="color:var(--text-1);display:block;margin-bottom:3px">${q.topic}</strong>
+        <span style="color:var(--text-3);font-size:13px">${q.hint}</span>
+      </div>
+      <span class="quiz-difficulty-badge ${badgeClass}">${badgeLabel}</span>
+    </div>
+    <div id="answer-area-${idx}">${answerHTML}</div>
+    <div class="quiz-feedback" id="feedback-${idx}"></div>
+  `;
+
+  return card;
+}
+
+/** Normalize a coefficient array — reduce by GCD */
+function normalizeCoeffs(arr) {
+  const g = arr.reduce(gcd, arr[0]);
+  return arr.map(c => Math.round(c / g));
+}
+
+/** Check coefficient-fill mode answer */
+window.checkCoeffAnswer = function(idx) {
+  if (quizAnswered[idx]) return;
+  const q = quizQuestions[idx];
+  const n = q.reactants.length + q.products.length;
+  const userCoeffs = [];
+  let allFilled = true;
+
+  for (let i = 0; i < n; i++) {
+    const box = $(`coeff-${idx}-${i}`);
+    const val = parseInt(box.value);
+    if (!val || val < 1) { allFilled = false; break; }
+    userCoeffs.push(val);
+  }
+
+  if (!allFilled) {
+    showToast('Fill in all coefficient boxes!', 'error');
+    return;
+  }
+
+  // Normalize both to compare
+  const correct = normalizeCoeffs(q.coeffs);
+  const userNorm = normalizeCoeffs(userCoeffs);
+
+  const isCorrect = correct.length === userNorm.length &&
+    correct.every((c, i) => c === userNorm[i]);
+
+  markAnswer(idx, isCorrect, correct, userCoeffs);
+};
+
+/** Check own-answer (typed full equation) */
+window.checkOwnAnswer = function(idx) {
+  if (quizAnswered[idx]) return;
+  const q = quizQuestions[idx];
+  const raw = $(`own-${idx}`).value.trim();
+  if (!raw) { showToast('Type your balanced equation first!', 'error'); return; }
+
+  let isCorrect = false;
+  try {
+    const { reactants: uR, products: uP } = parseEquation(raw);
+
+    // Try to balance the user's equation parse
+    // Extract coefficients from user input by parsing each formula token
+    const allForms = [...q.reactants, ...q.products];
+    const userForms = [...uR, ...uP];
+
+    // Check atom conservation in user's answer
+    if (uR.length !== q.reactants.length || uP.length !== q.products.length) {
+      throw new Error('Wrong number of compounds');
+    }
+
+    // Parse coefficients by matching formula to number prefix
+    function extractCoeffAndFormula(token) {
+      const m = token.match(/^(\d*)(.+)$/);
+      return { coeff: m[1] ? parseInt(m[1]) : 1, formula: m[2] };
+    }
+
+    // For simplicity: verify the equation is balanced (atom-count both sides)
+    const userCoeffMap = {};
+    [...uR, ...uP].forEach(tok => {
+      const { coeff, formula } = extractCoeffAndFormula(tok);
+      const counts = parseFormula(formula);
+      for (const [el, cnt] of Object.entries(counts)) {
+        userCoeffMap[el] = (userCoeffMap[el] || { l: 0, r: 0 });
+      }
+    });
+
+    // Simpler: check if user's equation is balanced using atom counting
+    function parseTokenList(tokens, isLeft) {
+      const total = {};
+      tokens.forEach(tok => {
+        const m = tok.match(/^(\d*)(.+)$/);
+        const coeff = m[1] ? parseInt(m[1]) : 1;
+        const formula = m[2];
+        const counts = parseFormula(formula);
+        for (const [el, cnt] of Object.entries(counts)) {
+          total[el] = (total[el] || 0) + cnt * coeff;
+        }
+      });
+      return total;
+    }
+
+    const uLeft = parseTokenList(uR);
+    const uRight = parseTokenList(uP);
+    const allEls = new Set([...Object.keys(uLeft), ...Object.keys(uRight)]);
+    const balanced = [...allEls].every(el => (uLeft[el] || 0) === (uRight[el] || 0));
+
+    // Also check that formulas match (no typos)
+    const qFormSet = new Set(allForms.map(f => f.replace(/\s/g, '')));
+    const uFormSet = new Set(userForms.map(tok => {
+      const m = tok.match(/^(\d*)(.+)$/);
+      return m[2].replace(/\s/g, '');
+    }));
+    const formsMatch = [...qFormSet].every(f => uFormSet.has(f));
+
+    isCorrect = balanced && formsMatch;
+
+    // Style the textarea
+    const ta = $(`own-${idx}`);
+    ta.classList.add(isCorrect ? 'oa-correct' : 'oa-wrong');
+    ta.readOnly = true;
+
+  } catch (e) {
+    isCorrect = false;
+    const ta = $(`own-${idx}`);
+    ta.classList.add('oa-wrong');
+    ta.readOnly = true;
+  }
+
+  markAnswer(idx, isCorrect, q.coeffs, null);
+};
+
+/** Reveal answer without checking */
+window.revealAnswer = function(idx) {
+  if (quizAnswered[idx]) return;
+  const q = quizQuestions[idx];
+
+  // In coeff mode — fill correct values into boxes with a "revealed" style
+  if (quizMode === 'coeff') {
+    const norm = normalizeCoeffs(q.coeffs);
+    const n = q.reactants.length + q.products.length;
+    for (let i = 0; i < n; i++) {
+      const box = $(`coeff-${idx}-${i}`);
+      if (!box) continue;
+      box.value = norm[i];
+      box.classList.add('input-revealed');
+      box.readOnly = true;
+    }
+  } else {
+    // In own mode — fill correct answer into textarea
+    const ta = $(`own-${idx}`);
+    if (ta) {
+      ta.value = plainEquation(q.reactants, q.products, q.coeffs);
+      ta.classList.add('oa-revealed');
+      ta.readOnly = true;
+    }
+  }
+
+  showFeedback(idx, false, q.coeffs, null, true);
+  quizAnswered[idx] = 'revealed';
+  disableAnswerArea(idx, q);
+  updateProgress();
+};
+
+/** Core: mark answer correct/wrong and show feedback */
+function markAnswer(idx, isCorrect, correctCoeffs, userCoeffs) {
+  quizAnswered[idx] = isCorrect ? 'correct' : 'wrong';
+  if (isCorrect) totalCorrect++;
+  else totalWrong++;
+
+  const card = $(`quiz-card-${idx}`);
+  card.classList.add(isCorrect ? 'correct-card' : 'wrong-card');
+
+  // Color coeff boxes and fill in correct value if wrong
+  if (quizMode === 'coeff' && userCoeffs) {
+    const norm = normalizeCoeffs(correctCoeffs);
+    const userNorm = normalizeCoeffs(userCoeffs);
+    userCoeffs.forEach((_, i) => {
+      const box = $(`coeff-${idx}-${i}`);
+      if (!box) return;
+      const isBoxCorrect = userNorm[i] === norm[i];
+      box.classList.add(isBoxCorrect ? 'input-correct' : 'input-wrong');
+      // If wrong, show the correct answer inside the box
+      if (!isBoxCorrect) {
+        box.value = norm[i];
+        box.title = `Correct: ${norm[i]}  (You entered: ${userNorm[i]})`;
+      }
+      box.readOnly = true;
+    });
+  }
+
+  showFeedback(idx, isCorrect, correctCoeffs, userCoeffs, false);
+  disableAnswerArea(idx, quizQuestions[idx]);
+  updateScoreBar();
+  updateProgress();
+  checkQuizComplete();
+}
+
+/** Show feedback box under a card */
+function showFeedback(idx, isCorrect, correctCoeffs, userCoeffs, isReveal) {
+  const q = quizQuestions[idx];
+  const fb = $(`feedback-${idx}`);
+  const balanced = plainEquation(q.reactants, q.products, correctCoeffs);
+
+  if (isReveal) {
+    fb.className = 'quiz-feedback visible fb-wrong';
+    fb.innerHTML = `
+      <span class="fb-icon">👁</span>
+      <div class="fb-text">
+        <strong>Answer revealed</strong>
+        Balanced equation: <code style="color:var(--cyan);font-family:var(--font-mono)">${balanced}</code>
+      </div>
+    `;
+  } else if (isCorrect) {
+    fb.className = 'quiz-feedback visible fb-correct';
+    fb.innerHTML = `
+      <span class="fb-icon">✅</span>
+      <div class="fb-text">
+        <strong>Correct!</strong>
+        <span style="color:var(--text-2)">${balanced}</span>
+      </div>
+    `;
+  } else {
+    fb.className = 'quiz-feedback visible fb-wrong';
+    fb.innerHTML = `
+      <span class="fb-icon">❌</span>
+      <div class="fb-text">
+        <strong>Not quite!</strong>
+        Correct answer: <code style="color:var(--cyan);font-family:var(--font-mono)">${balanced}</code>
+      </div>
+    `;
+  }
+}
+
+/** Disable inputs after answering */
+function disableAnswerArea(idx, q) {
+  if (quizMode === 'coeff') {
+    const n = q.reactants.length + q.products.length;
+    for (let i = 0; i < n; i++) {
+      const box = $(`coeff-${idx}-${i}`);
+      if (box) box.readOnly = true;
+    }
+  } else {
+    const ta = $(`own-${idx}`);
+    if (ta) ta.readOnly = true;
+  }
+  // Disable all action buttons in this card
+  const area = $(`answer-area-${idx}`);
+  if (area) area.querySelectorAll('.check-btn, .show-answer-btn').forEach(b => b.disabled = true);
+}
+
+/** Update score bar display */
+function updateScoreBar() {
+  $('scoreCorrect').textContent = totalCorrect;
+  $('scoreWrong').textContent = totalWrong;
+  $('scoreTotal').textContent = totalCorrect + totalWrong;
+  const total = totalCorrect + totalWrong;
+  const pct = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
+  $('scorePct').textContent = total > 0 ? `${pct}%` : '—';
+}
+
+/** Update progress bar */
+function updateProgress() {
+  const answered = Object.keys(quizAnswered).length;
+  const total = quizQuestions.length;
+  const pct = total > 0 ? (answered / total) * 100 : 0;
+  $('quizProgressFill').style.width = pct + '%';
+}
+
+/** Check if all questions answered */
+function checkQuizComplete() {
+  const answered = Object.keys(quizAnswered).length;
+  if (answered >= quizQuestions.length && quizQuestions.length > 0) {
+    const pct = Math.round((totalCorrect / quizQuestions.length) * 100);
+    const emoji = pct === 100 ? '🏆' : pct >= 70 ? '🎉' : pct >= 40 ? '💪' : '📚';
+    showToast(`Quiz complete! ${emoji} Score: ${totalCorrect}/${quizQuestions.length} (${pct}%)`);
+    $('quizEndBtns').style.display = 'flex';
+  }
+}
+
+/** Event listeners for quiz controls */
+$('generateQuizBtn').addEventListener('click', generateQuiz);
+
+$('retryQuizBtn').addEventListener('click', generateQuiz);
+
+$('resetQuizBtn').addEventListener('click', () => {
+  totalCorrect = 0; totalWrong = 0; quizAnswered = {}; quizQuestions = [];
+  $('scoreBar').style.display = 'none';
+  $('quizProgress').style.display = 'none';
+  $('quizEndBtns').style.display = 'none';
+  $('quizCardsContainer').innerHTML = `
+    <div class="quiz-empty">
+      <span class="quiz-empty-icon">⚗️</span>
+      Select difficulty &amp; count, then click <strong>Generate Quiz</strong> to start!
+    </div>`;
+  updateScoreBar();
+});
+
 // ─── SERVICE WORKER (PWA) ────────────────────────
 if ('serviceWorker' in navigator) {
   const swCode = `
@@ -2202,6 +3509,192 @@ if ('serviceWorker' in navigator) {
   const swUrl = URL.createObjectURL(blob);
   navigator.serviceWorker.register(swUrl).catch(() => {});
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// SELF-CHECK — User writes own Q + A, we verify
+// ═══════════════════════════════════════════════════════════════
+
+function runSelfCheck() {
+  const qRaw = ($('scQuestion').value || '').trim();
+  const aRaw = ($('scAnswer').value || '').trim();
+
+  // Reset
+  ['scQuestion','scAnswer'].forEach(id => {
+    $e = document.getElementById(id);
+    if ($e) { $e.classList.remove('sc-ok','sc-err'); }
+  });
+  const resultBox = $('scResult');
+  resultBox.innerHTML = '';
+  resultBox.classList.remove('visible');
+
+  if (!qRaw) { showToast('Pehle apna equation likhein!', 'error'); $('scQuestion').focus(); return; }
+  if (!aRaw) { showToast('Apna jawab bhi likhein!', 'error'); $('scAnswer').focus(); return; }
+
+  // Parse question
+  let qR, qP;
+  try {
+    const p = parseEquation(qRaw);
+    qR = p.reactants; qP = p.products;
+    [...qR,...qP].forEach(f => parseFormula(f));
+  } catch(e) {
+    $('scQuestion').classList.add('sc-err');
+    showResult(false, '⚠️ Equation Galat', e.message, null, null, null);
+    return;
+  }
+
+  // Parse user answer
+  let aR, aP;
+  try {
+    const p = parseEquation(aRaw);
+    aR = p.reactants; aP = p.products;
+  } catch(e) {
+    $('scAnswer').classList.add('sc-err');
+    showResult(false, '⚠️ Jawab Ka Format Galat', e.message, null, null, null);
+    return;
+  }
+
+  // Extract coeff + formula from each token
+  function split(tok) {
+    const m = tok.trim().match(/^(\d+)\s*(.+)$/);
+    return m ? { c: parseInt(m[1]), f: m[2].trim() } : { c: 1, f: tok.trim() };
+  }
+
+  // Count atoms on one side
+  function sideCount(tokens) {
+    const tot = {};
+    for (const tok of tokens) {
+      const { c, f } = split(tok);
+      const counts = parseFormula(f);
+      for (const [el, n] of Object.entries(counts)) {
+        tot[el] = (tot[el] || 0) + n * c;
+      }
+    }
+    return tot;
+  }
+
+  let userLeft, userRight;
+  try {
+    userLeft  = sideCount(aR);
+    userRight = sideCount(aP);
+  } catch(e) {
+    $('scAnswer').classList.add('sc-err');
+    showResult(false, '⚠️ Jawab Mein Formula Galat', e.message, null, null, null);
+    return;
+  }
+
+  // Check compounds match
+  const qForms = [...qR,...qP].map(f => f.trim().toLowerCase()).sort();
+  const aForms = [...aR,...aP].map(t => split(t).f.toLowerCase()).sort();
+  if (JSON.stringify(qForms) !== JSON.stringify(aForms)) {
+    $('scAnswer').classList.add('sc-err');
+    showResult(false, '❌ Galat Compounds!',
+      'Aapne formulas badal diye hain. Sirf numbers (coefficients) change karein, formulas nahi.',
+      aRaw, null, null);
+    return;
+  }
+
+  // Atom balance check
+  const allEls = [...new Set([...Object.keys(userLeft),...Object.keys(userRight)])].sort();
+  const rows = allEls.map(el => ({
+    el,
+    L: userLeft[el]  || 0,
+    R: userRight[el] || 0,
+    ok: (userLeft[el]||0) === (userRight[el]||0)
+  }));
+  const balanced = rows.every(r => r.ok);
+
+  // Get correct answer
+  let correctEq = null;
+  try {
+    const cs = balanceEquation(qR, qP);
+    correctEq = plainEquation(qR, qP, cs);
+  } catch(_) {}
+
+  if (balanced) {
+    $('scQuestion').classList.add('sc-ok');
+    $('scAnswer').classList.add('sc-ok');
+    showResult(true, '🎉 Bilkul Sahi Jawab!', 'Dono sides ke atoms bilkul equal hain. Aapne sahi balance kiya!', aRaw, correctEq, rows);
+  } else {
+    $('scAnswer').classList.add('sc-err');
+    showResult(false, '❌ Jawab Galat Hai', 'Kuch elements balance nahi hain. Neeche dekho kahan galti hui:', aRaw, correctEq, rows);
+  }
+}
+
+function showResult(ok, title, sub, userEq, correctEq, atomRows) {
+  const box = $('scResult');
+  const bannerClass = ok ? 'banner-ok' : 'banner-err';
+  const emoji = ok ? '✅' : '❌';
+
+  let compareHTML = '';
+  if (userEq && correctEq) {
+    const yourClass = ok ? 'val-same' : 'val-yours';
+    const yourLbl   = ok ? 'lbl-same'  : 'lbl-yours';
+    compareHTML = `
+      <div class="sc-compare">
+        <div class="sc-compare-row">
+          <span class="sc-compare-lbl ${yourLbl}">Aapka:</span>
+          <span class="sc-compare-val ${yourClass}">${userEq}</span>
+        </div>
+        <div class="sc-compare-row">
+          <span class="sc-compare-lbl lbl-correct">Sahi:</span>
+          <span class="sc-compare-val val-correct">${correctEq}</span>
+        </div>
+      </div>`;
+  }
+
+  let atomHTML = '';
+  if (atomRows && atomRows.length) {
+    const trs = atomRows.map(r => `
+      <tr class="${r.ok ? 'row-ok' : 'row-bad'}">
+        <td>${r.el}</td>
+        <td>${r.L}</td>
+        <td>${r.R}</td>
+        <td>${r.ok ? '✓ Equal' : '✗ ' + r.L + ' ≠ ' + r.R}</td>
+      </tr>`).join('');
+    atomHTML = `
+      <div class="sc-atom-section">
+        <div class="sc-atom-head">Atom Count — Aapke Jawab Mein</div>
+        <table class="sc-atom-tbl">
+          <thead><tr><th>Element</th><th>Left</th><th>Right</th><th>Match?</th></tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+  }
+
+  box.innerHTML = `
+    <div class="sc-result-banner ${bannerClass}">
+      <div class="sc-result-emoji">${emoji}</div>
+      <div>
+        <div class="sc-result-msg-title">${title}</div>
+        <div class="sc-result-msg-sub">${sub}</div>
+      </div>
+    </div>
+    ${compareHTML}
+    ${atomHTML}
+  `;
+  box.classList.add('visible');
+}
+
+document.getElementById('scCheckBtn').addEventListener('click', runSelfCheck);
+
+document.getElementById('scClearBtn').addEventListener('click', () => {
+  document.getElementById('scQuestion').value = '';
+  document.getElementById('scAnswer').value = '';
+  ['scQuestion','scAnswer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('sc-ok','sc-err');
+  });
+  const rb = document.getElementById('scResult');
+  if (rb) { rb.innerHTML = ''; rb.classList.remove('visible'); }
+  document.getElementById('scQuestion').focus();
+});
+
+['scQuestion','scAnswer'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') runSelfCheck(); });
+});
+
 
 </script>
 </body>
